@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% load static %}
+
+
+{% block content %}
+
+    <div class="container pt-4 px-4">
+        <div class="row g-4">
+            <div class="col-md-12 col-lg-12">
+                <div class="bg-light rounded w-100 h-100 p-4">
+                    <h6 class="mb-4">Изменения материала</h6>
+                    <hr>
+                    <form class="form_login" method="post">
+                        {% csrf_token %}
+                        {{ form.as_p }}
+                        <button type="submit" class="btn btn-primary form-btn btn-shadow w-100"
+                                style="width: 100%; border-radius: 5px">
+                            Изменить
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    {% block dashboard %}
+    {% endblock %}
+
+{% endblock %}

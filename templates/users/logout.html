@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Выйти{% endblock title %}
+
+{% block content %}
+
+<div class="container form_login" >
+    <h2>
+       Вы вышли из сайта.<br><hr>
+        <a href="{% url 'login' %}" class="btn btn-primary btn-block">Войти в сайт</a>
+    </h2>
+</div>
+
+
+{% endblock content %}

@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block title %} Profile page {% endblock title %}
+
+{% block content %}
+
+    <div class="container text-center">
+        <h1>Profile</h1>
+        <img class="img-thumbnail profile-pic" src="{{ user.profile_picture.url }}" alt="Profile picture">
+
+        <div class="p-2">
+            <h5>{{ user.first_name }}</h5>
+            <h5>{{ user.last_name }}</h5>
+            <h5>{{ user.email }}</h5>
+        </div>
+
+        <div>
+            <a class="btn btn-secondary w-50" href="{% url 'users:profile_edit' %}">Edit profile</a>
+        </div>
+        <div class="px-2 rounded mt-4 date">
+            <span class="join">
+                Joined {{ user.date_joined | date:"M d, Y" }}
+            </span>
+        </div>
+    </div>
+
+{% endblock content %}

@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% load static %}
+
+
+{% block content %}
+    <style>
+        .center-images {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .forma {
+            height: 750px;
+        }
+    </style>
+    
+    <div class="container-fluid pt-4 px-4">
+        <div class="row g-4">
+            <div class="col-md-6 forma">
+                <div class="bg-light rounded h-100 p-4">
+                    <h6 class="mb-4">Модели коробок</h6>
+                    <hr>
+                    <form class="form_login" method="post">
+                        {% csrf_token %}
+                        {{ form.as_p }}
+                        <button type="submit" class="btn btn-primary form-btn btn-shadow w-100"
+                                style="width: 100%; border-radius: 5px">
+                            Save Changes
+                        </button>
+                    </form>
+                </div>
+            </div>
+            <div class="col-md-6 center-images">
+                {% if photos %}
+                    {% for photo in photos %}
+                        <img src="{{ photo.photo.url }}" alt="Box Photo" class="img-fluid">
+                    {% endfor %}
+                {% else %}
+                    <p>No photo available</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    {% block dashboard %}
+    {% endblock %}
+
+{% endblock %}

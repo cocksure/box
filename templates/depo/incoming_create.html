@@ -1,0 +1,141 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+    <div class="container-fluid pt-4 px-4">
+        <div class="row g-4">
+            <div class="col-md-12">
+                <div class="bg-light rounded h-100 p-4">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="mb-4">Создание прихода</h6>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="col-md-6">
+                                <button id="addMaterialBtnModalModal" type="button" class="btn btn-primary btn-sm"
+                                        data-bs-toggle="modal" data-bs-target="#addMaterialModal">
+                                    Добавить материал
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <hr>
+                    <form method="post" id="incomingForm">
+                        {% csrf_token %}
+                        <div class="row mb-3">
+                            <div class="col-md-3">
+                                {{ incoming_form.invoice.label_tag }}
+                                {{ incoming_form.invoice }}
+                            </div>
+
+                            <div class="col-md-3">
+                                {{ incoming_form.warehouse.label_tag }}
+                                {{ incoming_form.warehouse }}
+                            </div>
+                            <div class="col-md-3">
+                                {{ incoming_form.data.label_tag }}
+                                {{ incoming_form.data }}
+                            </div>
+                            <div class="col-md-3">
+                                {{ incoming_form.note.label_tag }}
+                                {{ incoming_form.note }}
+                            </div>
+                        </div>
+                        <hr>
+
+                        <button type="submit" class="btn btn-primary form-btn btn-shadow w-100 mt-2"
+                                style="width: 100%; border-radius: 5px">
+                            Создать приход
+                        </button>
+                    </form>
+
+                    <table class="table" id="materialTable">
+                        <thead>
+                        <tr>
+                            <th scope="col">Название материала</th>
+                            <th scope="col">Количество</th>
+                            <th scope="col">Примечание</th>
+                        </tr>
+                        </thead>
+                        <tbody id="materialTableBody">
+                        <!-- Материалы будут добавляться сюда -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Adding Incoming Material -->
+    <div class="modal fade" id="addMaterialModal" tabindex="-1" aria-labelledby="addMaterialModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addMaterialModalLabel">Добавить материал</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form method="post" id="addMaterialForm">
+                        {% csrf_token %}
+                        {{ incoming_material_formset.management_form }}
+                        <div id="formset-items">
+                            <!-- Поля для ввода материалов -->
+                            {{ incoming_material_formset.empty_form.material }}
+                            {{ incoming_material_formset.empty_form.amount }}
+                            {{ incoming_material_formset.empty_form.comment }}
+                        </div>
+                        <button type="button" id="addMaterialBtnModal" class="btn btn-primary mt-2"
+                                style="border-radius: 5px">Добавить
+                        </button>
+                    </form>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        $(document).ready(function () {
+            // Добавление полей при нажатии кнопки
+            $('#addMaterialBtnModal').on('click', function () {
+                $('#formset-items').append('{{ incoming_material_formset.empty_form|escapejs }}');
+            });
+
+            // Обработка формы при отправке
+            $('#addMaterialForm').on('submit', function (e) {
+                e.preventDefault();
+
+                $.ajax({
+                    type: 'POST',
+                    url: '{% url "depo:incoming-create" %}',
+                    data: $(this).serialize(),
+                    success: function (data) {
+                        // Очистить таблицу перед обновлением
+                        $('#materialTableBody').empty();
+
+                        // Обновить таблицу с данными о материалах
+                        data.materials.forEach(function (material) {
+                            $('#materialTableBody').append('<tr><td>' + material.name + '</td><td>' + material.amount + '</td><td>' + material.comment + '</td></tr>');
+                        });
+
+                        // Скрыть модальное окно
+                        $('#addMaterialModal').modal('hide');
+
+                        // Показать сообщение об успешном сохранении
+                        alert('Данные успешно сохранены!');
+                    },
+                    error: function (xhr, status, error) {
+                        // Показать сообщение об ошибке
+                        alert('Произошла ошибка при сохранении данных.');
+                    }
+                });
+            });
+        });
+
+    </script>
+
+    {% block dashboard %}
+    {% endblock dashboard %}
+{% endblock content %}

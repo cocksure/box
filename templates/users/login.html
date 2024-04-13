@@ -1,0 +1,93 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>Войти в систему</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css'>
+
+    <style>
+        *,
+        ::after,
+        ::before {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            width: 100vw;
+            height: 100vh;
+            font-family: "Lato", sans-serif;
+            background: url('{% static 'img/kartonn.png' %}') center/cover no-repeat;
+            text-shadow: 2px 1px 1px black;
+        }
+        
+
+        .login-container {
+            position: relative;
+            top: 10%;
+            margin: auto;
+            max-width: 700px;
+            height: 500px;
+            background-color: rgba(20, 20, 20, 0.8);
+            color: #ddd;
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: 0 0 10px 5px rgba(0, 0, 0, 0.4);
+        }
+
+        .btn {
+            width: 120px;
+            margin: 1.5rem 0;
+        }
+
+        .btn:active {
+            transform: scale(0.95);
+        }
+
+        i.far.fa-eye {
+            cursor: pointer;
+        }
+
+        .form-field input {
+            color: #ddd;
+        }
+
+        .alert-message {
+            visibility: hidden;
+        }
+
+        .form-field.error input {
+            border-color: red;
+        }
+
+        .form-field.success input {
+            border-color: greenyellow;
+        }
+    </style>
+</head>
+
+<body>
+<main class="login-container">
+    <h2>Войти в систему</h2>
+
+    <form class="form-login" method="post" id="loginForm">
+        {% csrf_token %}
+        <div class="form-field">
+            <label for="loginUsername">Имя пользователья</label>
+            <input type="text" id="loginUsername" placeholder="Введите имя ползователья" name="username"/>
+            <small class="alert-message">Error</small>
+        </div>
+        <div class="form-field">
+            <label for="loginPassword">Пароль</label>
+            <input type="password" id="loginPassword" placeholder="Введите пароль" name="password"/>
+            <small class="alert-message">Error</small>
+        </div>
+        <button class="btn" type="submit">Войти</button>
+    </form>
+</main>
+</body>
+</html>
