@@ -1,9 +1,9 @@
 from django import forms
-from django.forms import formset_factory, inlineformset_factory
+from django.forms import inlineformset_factory
 
-from .models import UploadImage, BoxOrder, BoxOrderDetail
 from apps.info.models import Material, BoxSize, BoxType
 from apps.production.models import BoxModel, Process
+from .models import UploadImage, BoxOrder, BoxOrderDetail
 
 
 class BoxModelForm(forms.ModelForm):
@@ -37,11 +37,12 @@ class BoxOrderForm(forms.ModelForm):
 		model = BoxOrder
 		fields = ['customer', 'type_order', 'specification', 'date_of_production']
 		widgets = {
-			'data': forms.DateInput(attrs={'class': 'form-control', }),
-			'customer': forms.TextInput(attrs={'class': 'form-control'}),
-			'type_order': forms.TextInput(attrs={'class': 'form-control'}),
-			'specification': forms.TextInput(attrs={'class': 'form-control'}),
-			'date_of_production': forms.DateInput(attrs={'class': 'form-control'}),
+			'data': forms.DateInput(attrs={'class': 'form-control'}),
+			'customer': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Введите имя клиента'}),
+			'type_order': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Введите тип заказа'}),
+			'specification': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Введите спецификацию'}),
+			'date_of_production': forms.DateInput(
+				attrs={'class': 'form-control', 'type': 'date', }),
 		}
 
 
@@ -50,9 +51,14 @@ class BoxOrderDetailForm(forms.ModelForm):
 		model = BoxOrderDetail
 		fields = ['box_model', 'amount']
 		widgets = {
-			'box_model': forms.Select(attrs={'class': 'form-control', 'name': 'box_model', 'id': 'box_model'}),
-			'amount': forms.NumberInput(attrs={'class': 'form-control', 'name': 'amount', 'id': 'amount'}),
+			'box_model': forms.Select(attrs={'class': 'form-control mb-3', 'name': 'box_model', 'id': 'box_model'}),
+			'amount': forms.NumberInput(
+				attrs={'class': 'form-control', 'name': 'amount', 'id': 'amount', 'placeholder': 'Введите количеству'}),
 		}
+
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+		self.fields['box_model'].queryset = BoxModel.objects.all()
 
 
 BoxOrderDetailFormSet = inlineformset_factory(BoxOrder, BoxOrderDetail, form=BoxOrderDetailForm, extra=1)

@@ -50,11 +50,11 @@ class BoxOrder(BaseModel):
 		REJECT = 'Отклонено', 'Отклонено'
 
 	data = models.DateField(editable=True, null=True, blank=True)
-	customer = models.CharField(max_length=100)
+	customer = models.CharField(max_length=100, null=True, blank=True)
 	status = models.CharField(choices=BoxOrderStatus.choices, default=None, null=True, blank=True, max_length=150)
-	type_order = models.CharField(max_length=100)
-	specification = models.CharField(max_length=100)
-	manager = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+	type_order = models.CharField(max_length=100, null=True, blank=True)
+	specification = models.CharField(max_length=100, null=True, blank=True)
+	manager = models.ForeignKey(CustomUser, on_delete=models.CASCADE, null=True, blank=True)
 	date_of_production = models.DateField(editable=True)
 
 	def confirm(self):

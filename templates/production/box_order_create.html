@@ -1,35 +1,48 @@
 {% extends 'base.html' %}
 {% load static %}
 
-
 {% block content %}
     <div class="container-fluid pt-4 px-4">
         <div class="row g-4">
             <div class="col-sm-12">
-                <div class="bg-light rounded h-100 p-4">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <h6 class="mb-4">Создание заказа</h6>
+                <div class="">
+                    <div class="row bg-light rounded mb-3 p-2">
+                        <div class="row ">
+                            <div class="col-md-6 ">
+                                <h6 class="mb-4">Создание заказа</h6>
+                            </div>
+                            <div class="col-md-6 text-end">
+                                <button type="submit" form="id_form" class="btn btn-success w-30 mb-3">Создать Заказ
+                                </button>
+                            </div>
+                            <hr>
                         </div>
 
-                        <div class="col-md-6">
-                            <button type="submit" form="id_form" class="btn btn-primary">Создать</button>
+                        <div class="row  rounded ">
+                            <form id="id_form" method="post" class="form-inline">
+                                {% csrf_token %}
+                                <div class="row mb-3">
+                                    <div class="col-md-3">
+                                        {{ form.customer }}
+                                    </div>
+                                    <div class="col-md-3">
+                                        {{ form.type_order }}
+                                    </div>
+                                    <div class="col-md-3">
+                                        {{ form.specification }}
+                                    </div>
+                                    <div class="col-md-3">
+                                        {{ form.date_of_production }}
+                                    </div>
+                                </div>
+                                <!-- Скрытые поля для хранения данных о деталях заказа -->
+                                <input type="hidden" name="box_model_1" id="box_model_1">
+                                <input type="hidden" name="amount_1" id="amount_1">
+                                <!-- Дополнительные скрытые поля для других деталей заказа -->
+                            </form>
                         </div>
                     </div>
-                    <hr>
-
-                    <div class="row">
-                        <form id="id_form" method="post">
-                            {% csrf_token %}
-                            {{ form.as_p }}
-                        </form>
-                        <button type="button" class="btn btn-primary btn-sm mb-3" id="openCreateModalBtn"
-                                data-bs-toggle="modal"
-                                data-bs-target="#myModalCreate">Добавить деталь заказа
-                        </button>
-                    </div>
-
-                    <!--  Modal -->
+                    <!-- Модальное окно для создания детали заказа -->
                     <div class="modal fade" id="myModalCreate" tabindex="-1" role="dialog"
                          aria-labelledby="myModalLabelCreate">
                         <div class="modal-dialog" role="document">
@@ -40,14 +53,17 @@
                                             aria-label="Close"></button>
                                 </div>
                                 <div class="modal-body">
-                                    <form id="myModalCreateForm" method="post"
-                                          action="{% url 'create_order_details' %}">
-                                        {% csrf_token %}
-                                        {{ order_detail_formset.management_form }}
-                                        <div id="formset-container">
-                                            {{ order_detail_formset.as_p }}
+                                    <form id="myModalCreateForm">
+                                        <div class="mb-3">
+                                            <label for="box_model">Модель коробки</label>
+                                            {% for form in order_detail_formset %}
+                                                {{ form.box_model }}
+                                                {{ form.amount }}
+                                            {% endfor %}
                                         </div>
-                                        <button type="submit" class="btn btn-primary" id="createOrderBtn">Создать
+                                        <!-- Добавляем скрытое поле с идентификатором заказа -->
+                                        <input type="hidden" name="order_id" value="{{ order.id }}">
+                                        <button type="button" class="btn btn-primary" id="addDetailBtn">Добавить
                                         </button>
                                     </form>
                                 </div>
@@ -55,22 +71,27 @@
                         </div>
                     </div>
 
-                    <!--  Table -->
-                    <table class="table table-striped">
-                        <thead>
-                        <tr>
-                            <th scope="col">Модель коробки</th>
-                            <th scope="col">Количество</th>
-                            <th scope="col">Действия</th>
-                        </tr>
-                        </thead>
-                        <tbody id="order_details_table">
-                        <tr>
 
-                        </tr>
-                        </tbody>
-                    </table>
+                    <!-- Таблица для отображения деталей заказа -->
+                    <div class="row p-3 bg-light rounded">
+                        <button type="button" class="btn btn-primary btn-sm " id="openCreateModalBtn"
+                                data-bs-toggle="modal"
+                                data-bs-target="#myModalCreate">Добавить
+                        </button>
 
+                        <table class="table table-striped  mt-3" style="min-height: 550px;">
+                            <thead class="p-3">
+                            <tr>
+                                <th scope="col">Модель коробки</th>
+                                <th scope="col">Количество</th>
+                                <th scope="col">Действия</th>
+                            </tr>
+                            </thead>
+                            <tbody id="order_details_table">
+                            <!-- Сюда будут добавляться детали заказа динамически -->
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
@@ -80,48 +101,61 @@
     {% endblock %}
 
     <script>
-        // JavaScript code
         document.addEventListener('DOMContentLoaded', function () {
-            document.querySelector('#myModalCreateForm').addEventListener('submit', function (event) {
+            let orderId;
+
+            document.getElementById('addDetailBtn').addEventListener('click', function () {
+                let boxModel = document.getElementById('box_model').value;
+                let amount = document.getElementById('amount').value;
+
+                let boxModelFieldName = 'box_model_' + (document.querySelectorAll('.box_model').length + 1);
+                let amountFieldName = 'amount_' + (document.querySelectorAll('.amount').length + 1);
+
+                let boxModelField = '<input type="hidden" name="' + boxModelFieldName + '" class="box_model" value="' + boxModel + '">';
+                let amountField = '<input type="hidden" name="' + amountFieldName + '" class="amount" value="' + amount + '">';
+
+                document.getElementById('id_form').insertAdjacentHTML('beforeend', boxModelField);
+                document.getElementById('id_form').insertAdjacentHTML('beforeend', amountField);
+
+                let newRow = '<tr>' +
+                    '<td>' + boxModel + '</td>' +
+                    '<td>' + amount + '</td>' +
+                    '<td>' +
+                    '<a href="" type="button" class="btn btn-primary btn-sm"><i class="bi bi-pencil-square"></i></a>' +
+                    '</td>' +
+                    '</tr>';
+                document.getElementById('order_details_table').insertAdjacentHTML('beforeend', newRow);
+
+                document.getElementById('box_model').value = '';
+                document.getElementById('amount').value = '';
+
+                $('#myModalCreate').modal('hide');
+            });
+
+            document.getElementById('id_form').addEventListener('submit', function (event) {
                 event.preventDefault();
 
                 let formData = new FormData(this);
+                let orderDetails = document.querySelectorAll('.box_model, .amount');
 
-                // Dobavlyaem polya dlya BoxOrderDetailFormSet
-                formData.append('boxorderdetail_set-TOTAL_FORMS', '{{ order_detail_formset.total_form_count }}');
-                formData.append('boxorderdetail_set-INITIAL_FORMS', '{{ order_detail_formset.initial_form_count }}');
-                formData.append('boxorderdetail_set-MIN_NUM_FORMS', '{{ order_detail_formset.min_num_forms }}');
-                formData.append('boxorderdetail_set-MAX_NUM_FORMS', '{{ order_detail_formset.max_num_forms }}');
+                // Loop through each detail field and append its data to the formData
+                orderDetails.forEach(function (detail) {
+                    formData.append(detail.name, detail.value);
+                });
 
-                fetch(this.action, {
+                fetch('{% url "box-order-create" %}', {
                     method: 'POST',
+                    body: formData,
                     headers: {
                         'X-CSRFToken': '{{ csrf_token }}'
-                    },
-                    body: formData,
-                    dataType: 'json'
+                    }
                 })
                     .then(response => {
                         if (!response.ok) {
                             throw new Error('Network response was not ok');
+                        } else {
+                            window.location.href = '{% url "box-order-list" %}';
                         }
-                        return response.json();
-                    })
-                    .then(data => {
-                        let boxModel = formData.get('boxorderdetail_set-0-box_model');
-                        let amount = formData.get('boxorderdetail_set-0-amount');
-
-                        let newRow = '<tr>' +
-                            '<td>' + boxModel + '</td>' +
-                            '<td>' + amount + '</td>' +
-                            '<td>' +
-                            '<a href="" type="button" class="btn btn-primary btn-sm"><i class="bi bi-pencil-square"></i></a>' +
-                            '</td>' +
-                            '</tr>';
-
-                        $('#order_details_table').append(newRow);
-
-                        $('#myModalCreate').modal('hide');
                     })
                     .catch(error => {
                         console.error('Error:', error);
@@ -129,4 +163,8 @@
             });
         });
     </script>
+
+
+
+
 {% endblock %}
