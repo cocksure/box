@@ -104,6 +104,9 @@ class BoxOrderListView(View):
 		return render(request, "production/box_order_list.html", context)
 
 
+from django.db import transaction
+
+
 class BoxOrderListCreate(CreateView):
 	model = BoxOrder
 	form_class = BoxOrderForm
@@ -113,28 +116,33 @@ class BoxOrderListCreate(CreateView):
 		order = form.save(commit=False)
 		order.manager = self.request.user
 		order.data = timezone.now()
-		order.save()
-
-		order_id = order.id
 
 		try:
-			box_model_ids = self.request.POST.getlist('box_model_1')
-			amounts = self.request.POST.getlist('amount_1')
+			with transaction.atomic():
+				order.save()
+				print("Order saved:", order.id)  # Добавляем отладочный вывод
 
-			for box_model_id, amount in zip(box_model_ids, amounts):
-				if box_model_id and amount:  # Проверяем, что значения не пустые
-					box_model = BoxModel.objects.get(id=box_model_id)
+				detail_counter = int(self.request.POST.get('detail_counter', 0))
 
-					BoxOrderDetail.objects.create(
-						box_model=box_model,
-						amount=amount,
-						box_order_id=order_id
-					)
+				for detail_index in range(1, detail_counter + 1):
+					box_model_id = self.request.POST.get('box_model_' + str(detail_index))
+					amount = self.request.POST.get('amount_' + str(detail_index))
+					if box_model_id and amount:
+						box_model = BoxModel.objects.get(id=box_model_id)
+						BoxOrderDetail.objects.create(
+							box_model=box_model,
+							amount=amount,
+							box_order=order
+						)
+						print("Detail created:", box_model_id, amount)  # Добавляем отладочный вывод
 
 		except Exception as e:
-			return JsonResponse({'error': str(e)}, status=400)
+			print("Error:", e)  # Добавляем отладочный вывод
 
+			return JsonResponse({'error': str(e)}, status=400)
 		else:
+			print("Redirecting to box-order-list")  # Добавляем отладочный вывод
+
 			return HttpResponseRedirect(reverse_lazy('box-order-list'))
 
 	def form_invalid(self, form):
@@ -143,11 +151,9 @@ class BoxOrderListCreate(CreateView):
 	def get_context_data(self, **kwargs):
 		context = super().get_context_data(**kwargs)
 		if self.object:
-			order_id = self.object.id
 			context['order_detail_formset'] = BoxOrderDetailFormSet(
 				self.request.POST if self.request.method == 'POST' else None,
-				instance=self.object,
-				order_id=order_id
+				instance=self.object
 			)
 		else:
 			context['order_detail_formset'] = BoxOrderDetailFormSet()
