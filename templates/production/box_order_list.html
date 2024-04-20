@@ -8,14 +8,17 @@
     <div class="container-fluid pt-4 px-4">
         <div class="row g-4">
             <div class="col-sm-12">
-                <div class="bg-light rounded h-100 p-4">
-                    <h6 class="mb-4">Заказы</h6>
+                <div class="row bg-light rounded h-100 p-4">
+                    <h6 class="col-md-6 mb-4">Заказы</h6>
+                    <div class="col-md-6 text-end mt-n2">
+                        <a href="{% url 'box-order-create' %}" type="submit" class="btn btn-primary">Создать</a>
+                    </div>
                     <hr>
 
                     <!-- Search -->
                     <div class="row mb-2">
                         <div class="col-md-6">
-                            <form class="d-none d-md-flex mb-3" method="GET" action="{% url 'box-order-list' %}">
+                            <form class="d-none d-md-flex mb-3">
                                 <div class="input-group">
                                     <input type="search" name="search" class="form-control border-0"
                                            placeholder="Search">
@@ -25,43 +28,64 @@
                                 </div>
                             </form>
                         </div>
-                        <div class="col-md-6">
-                            <a href="{% url 'box-order-create' %}" type="submit" class="btn btn-primary">Создать</a>
+                        <div class="col-md-4 text-end">
+                            <form id="status-form" method="GET" action="{% url 'box-order-list' %}">
+                                <select id="status-filter" name="status" class="form-select">
+                                    <option value="all" {% if selected_status == 'all' %} selected {% endif %}>Все
+                                    </option>
+                                    <option value="{{ BoxOrder.BoxOrderStatus.NEW }}"
+                                            {% if selected_status == BoxOrder.BoxOrderStatus.NEW %}
+                                            selected {% endif %}>Новые
+                                    </option>
+                                    <option value="{{ BoxOrder.BoxOrderStatus.ACCEPT }}"
+                                            {% if selected_status == BoxOrder.BoxOrderStatus.ACCEPT %}
+                                            selected {% endif %}>Одобренные
+                                    </option>
+                                    <option value="{{ BoxOrder.BoxOrderStatus.REJECT }}"
+                                            {% if selected_status == BoxOrder.BoxOrderStatus.REJECT %}
+                                            selected {% endif %}>Отклоненные
+                                    </option>
+                                </select>
+
+                            </form>
                         </div>
                     </div>
 
                     <!--  Table -->
-                    <table class="table table-striped">
-                        <thead>
-                        <tr class="text-center">
-                            <th scope="col">ID</th>
-                            <th scope="col">Заказчик</th>
-                            <th scope="col">Дата</th>
-                            <th scope="col">Статус</th>
-                            <th scope="col">Тип заказа</th>
-                            <th scope="col">Менеджер</th>
-                            <th scope="col">Действия</th>
-                            
-                        </tr>
-                        </thead>
-                        <tbody>
-                        {% for box_order in box_orders %}
+                    <div id="order-list">
+                        <table class="table table-striped">
+                            <thead>
                             <tr class="text-center">
-                                <td>{{ box_order.id }}</td>
-                                <td>{{ box_order.customer }}</td>
-                                <td>{{ box_order.data }}</td>
-                                <td>{{ box_order.status }}</td>
-                                <td>{{ box_order.type_order }}</td>
-                                <td>{{ box_order.manager }}</td>
-                                <td>
-                                    <a href="" type="button" class="btn btn-primary btn-sm"><i
-                                            class="bi bi-pencil-square"></i></a>
-                                </td>
+                                <th scope="col">ID</th>
+                                <th scope="col">Заказчик</th>
+                                <th scope="col">Дата</th>
+                                <th scope="col">Статус</th>
+                                <th scope="col">Тип заказа</th>
+                                <th scope="col">Менеджер</th>
+                                <th scope="col">Действия</th>
                             </tr>
-                        {% endfor %}
+                            </thead>
+                            <tbody>
+                            {% for box_order in box_orders %}
+                                <tr class="text-center order-row">
+                                    <td>{{ box_order.id }}</td>
+                                    <td>{{ box_order.customer }}</td>
+                                    <td>{{ box_order.data }}</td>
+                                    <td class="status">{{ box_order.status }}</td>
+                                    <td>{{ box_order.type_order }}</td>
+                                    <td>{{ box_order.manager }}</td>
+                                    <td>
+                                        <a href="{% url 'box-order-detail' box_order.pk %}" type="button"
+                                           class="btn btn-primary btn-sm">
+                                            <i class="bi bi-pencil-square"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
 
-                        </tbody>
-                    </table>
 
                     <!-- Pagination start -->
                     <div class="row justify-content-end">
@@ -104,24 +128,25 @@
         </div>
     </div>
 
-    <!-- Table End -->
 
     {% block dashboard %}
     {% endblock %}
 
     <script>
-        $(document).ready(function () {
-            $('#myModal').on('show.bs.modal', function () {
-                $('#myModalForm')[0].reset();
+        // Получаем текущее значение статуса из URL
+        var urlParams = new URLSearchParams(window.location.search);
+        var selectedStatus = urlParams.get('status');
 
-                $('#name').val('Значение по умолчанию');
-            });
+        // Устанавливаем выбранное значение статуса в форме
+        if (selectedStatus) {
+            document.getElementById('status-filter').value = selectedStatus;
+        }
 
-            $('#openModalBtn').click(function () {
-                $('#myModal').modal('show');
-            });
+        // Отправляем форму при изменении значения
+        document.getElementById('status-filter').addEventListener('change', function () {
+            document.getElementById('status-form').submit();
         });
-
     </script>
+
 
 {% endblock %}

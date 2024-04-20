@@ -6,13 +6,14 @@ from django.shortcuts import get_object_or_404
 from django.urls import reverse_lazy
 from django.utils import timezone
 from django.views import View
-from django.views.generic import CreateView
+from django.views.generic import CreateView, DetailView
 
 from apps.info.models import Material, BoxSize, BoxType
-from apps.production.forms import BoxModelForm, BoxOrderForm, BoxOrderDetailForm, BoxOrderDetailFormSet
+from apps.production.forms import BoxModelForm, BoxOrderForm, BoxOrderDetailFormSet
 from apps.production.models import BoxModel, Process, UploadImage, BoxOrder, BoxOrderDetail
 from django.db.models import Q
-from django.http import JsonResponse, HttpResponse, HttpResponseRedirect
+from django.http import JsonResponse, HttpResponseRedirect
+from django.db import transaction
 
 
 def base_html_view(request):
@@ -91,7 +92,12 @@ class BoxOrderListView(View):
 		search_query = request.GET.get('search')
 		if search_query:
 			search_query = search_query.strip()
-			queryset = queryset.filter(Q(id__icontains=search_query))
+			queryset = queryset.filter(id__icontains=search_query)
+
+		status = request.GET.get('status')
+		if status:
+			queryset = queryset.filter(status=status)
+		# Если статус не указан, просто показываем все объекты
 
 		page_size = request.GET.get("page_size", 12)
 		paginator = Paginator(queryset, page_size)
@@ -100,14 +106,13 @@ class BoxOrderListView(View):
 
 		context = {
 			'box_orders': page_obj,
+			'selected_status': status
 		}
+
 		return render(request, "production/box_order_list.html", context)
 
 
-from django.db import transaction
-
-
-class BoxOrderListCreate(CreateView):
+class BoxOrderCreate(CreateView):
 	model = BoxOrder
 	form_class = BoxOrderForm
 	template_name = 'production/box_order_create.html'
@@ -158,3 +163,42 @@ class BoxOrderListCreate(CreateView):
 		else:
 			context['order_detail_formset'] = BoxOrderDetailFormSet()
 		return context
+
+
+class BoxOrderDetailView(DetailView):
+	model = BoxOrder
+	template_name = 'production/box_order_detail.html'
+	context_object_name = 'box_order'
+
+	def get(self, request, *args, **kwargs):
+		box_order = self.get_object()
+		order_details = box_order.boxorderdetail_set.all()
+		return render(request, self.template_name, {
+			self.context_object_name: box_order,
+			'order_details': order_details
+		})
+
+	def post(self, request, *args, **kwargs):
+		box_order = self.get_object()
+		new_status = request.POST.get('status')
+		if new_status is not None:
+			if new_status in [choice[0] for choice in box_order.BoxOrderStatus.choices]:
+				box_order.status = new_status
+				box_order.save()
+				return HttpResponseRedirect(reverse_lazy('box-order-detail', kwargs={'pk': box_order.pk}))
+			else:
+				return JsonResponse({'error': 'Invalid status parameter'}, status=400)
+		else:
+			return JsonResponse({'error': 'Status parameter missing'}, status=400)
+
+# class BoxOrderUpdate(View):
+# 	def get(self, request, pk):
+# 		order = get_object_or_404(BoxOrder, pk=pk)
+# 		new_status = request.POST.get('status')
+#
+# 		if new_status:
+# 			order.status = new_status
+# 			order.save()
+# 			return JsonResponse({'success': True})
+# 		else:
+# 			return JsonResponse({'success': False, 'error': 'No status provided'}, status=400)

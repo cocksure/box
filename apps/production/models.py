@@ -48,23 +48,30 @@ class BoxOrder(BaseModel):
 	class BoxOrderStatus(models.TextChoices):
 		ACCEPT = 'Одобрено', 'Одобрено'
 		REJECT = 'Отклонено', 'Отклонено'
+		NEW = 'НОВАЯ', 'НОВАЯ'
 
-	data = models.DateField(editable=True, null=True, blank=True)
-	customer = models.CharField(max_length=100, null=True, blank=True)
-	status = models.CharField(choices=BoxOrderStatus.choices, default=None, null=True, blank=True, max_length=150)
-	type_order = models.CharField(max_length=100, null=True, blank=True)
-	specification = models.CharField(max_length=100, null=True, blank=True)
+	data = models.DateField(editable=True)
+	customer = models.CharField(max_length=100)
+	status = models.CharField(choices=BoxOrderStatus.choices, default=BoxOrderStatus.NEW, null=True, blank=True,
+							  max_length=20)
+	type_order = models.CharField(max_length=100)
+	specification = models.CharField(max_length=100)
 	manager = models.ForeignKey(CustomUser, on_delete=models.CASCADE, null=True, blank=True)
 	date_of_production = models.DateField(editable=True)
 
-	def confirm(self):
+	def new(self):
 		if self.status is None:
-			self.status = BoxOrder.BoxOrderStatus.ACCEPT
+			self.status = self.BoxOrderStatus.NEW
+			self.save()
+
+	def confirm(self):
+		if self.status == self.BoxOrderStatus.NEW:
+			self.status = self.BoxOrderStatus.ACCEPT
 			self.save()
 
 	def reject(self):
-		if self.status is None:
-			self.status = BoxOrder.BoxOrderStatus.REJECT
+		if self.status == self.BoxOrderStatus.NEW:
+			self.status = self.BoxOrderStatus.REJECT
 			self.save()
 
 	def __str__(self):
@@ -72,7 +79,7 @@ class BoxOrder(BaseModel):
 
 
 class BoxOrderDetail(models.Model):
-	box_order = models.ForeignKey(BoxOrder, on_delete=models.CASCADE, null=True, blank=True)
+	box_order = models.ForeignKey(BoxOrder, on_delete=models.CASCADE)
 	box_model = models.ForeignKey(BoxModel, on_delete=models.CASCADE)
 	amount = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
 

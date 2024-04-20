@@ -1,0 +1,78 @@
+{#{% extends 'base.html' %}#}
+{#{% load static %}#}
+{##}
+{#{% block title %} Обновить заказ {% endblock title %}#}
+{##}
+{#{% block content %}#}
+{#    <div class="container-fluid pt-4 px-4">#}
+{#        <div class="row g-4">#}
+{#            <div class="col-sm-12">#}
+{#                <div class="">#}
+{#                    <div class="row bg-light rounded mb-3 p-2">#}
+{#                        <div class="row ">#}
+{#                            <div class="col-md-6 ">#}
+{#                                <h6 class="mb-4">Обновление заказа</h6>#}
+{#                            </div>#}
+{#                            <div class="col-md-6 text-end">#}
+{#                                <button type="submit" form="id_form" class="btn btn-success w-30 mb-3">Обновить Заказ#}
+{#                                </button>#}
+{#                            </div>#}
+{#                            <hr>#}
+{#                        </div>#}
+{##}
+{#                        <div class="row  rounded ">#}
+{#                            <form id="id_form" method="post" class="form-inline">#}
+{#                                {% csrf_token %}#}
+{#                                <div class="row mb-3">#}
+{#                                    <div class="col-md-6">#}
+{#                                        {{ form.status }}#}
+{#                                    </div>#}
+{#                                </div>#}
+{#                                <!-- Include the hidden field for the detail counter -->#}
+{#                                <input type="hidden" id="detail_counter" name="detail_counter" value="1">#}
+{##}
+{#                            </form>#}
+{#                        </div>#}
+{#                    </div>#}
+{#                </div>#}
+{#            </div>#}
+{#        </div>#}
+{#    </div>#}
+{##}
+{#    {% block dashboard %}#}
+{#    {% endblock %}#}
+{##}
+{#    <script>#}
+{#        document.addEventListener('DOMContentLoaded', function () {#}
+{##}
+{#            document.getElementById('id_form').addEventListener('submit', function (event) {#}
+{#                event.preventDefault();#}
+{##}
+{#                let formData = new FormData();#}
+{#                let newStatus = document.getElementById('id_status').value; // Assuming you have a field with id 'id_status' for selecting new status#}
+{##}
+{#                formData.append('status', newStatus);#}
+{##}
+{#                fetch('{% url "box-order-update" pk=box_order.id %}', {#}
+{#                    method: 'GET',#}
+{#                    body: formData,#}
+{#                    headers: {#}
+{#                        'X-CSRFToken': '{{ csrf_token }}'#}
+{#                    }#}
+{#                })#}
+{#                .then(response => {#}
+{#                    if (!response.ok) {#}
+{#                        throw new Error('Network response was not ok');#}
+{#                    } else {#}
+{#                        window.location.href = '{% url "box-order-list" %}';#}
+{#                    }#}
+{#                })#}
+{#                .catch(error => {#}
+{#                    console.error('Error:', error);#}
+{#                });#}
+{#            });#}
+{##}
+{#        });#}
+{##}
+{#    </script>#}
+{#{% endblock %}#}

@@ -39,16 +39,6 @@
                                 </div>
                                 <input type="hidden" id="detail_counter" name="detail_counter" value="1">
 
-                                <!-- Скрытые поля для хранения данных о деталях заказа -->
-                                {% for form in order_detail_formset %}
-                                    {% with forloop.counter as detail_index %}
-                                        {#                                        <input type="hidden" name="box_model_{{ detail_index }}"#}
-                                        {#                                               id="box_model_{{ detail_index }}">#}
-                                        {#                                        <input type="hidden" name="amount_{{ detail_index }}"#}
-                                        {#                                               id="amount_{{ detail_index }}">#}
-                                    {% endwith %}
-                                {% endfor %}
-                                <!-- Дополнительные скрытые поля для других деталей заказа -->
                             </form>
                         </div>
                     </div>
@@ -68,7 +58,6 @@
                                             <label for="box_model">Модель коробки</label>
                                             {% for form in order_detail_formset %}
                                                 <div class="form-group">
-
                                                     {{ form.box_model }}
                                                     {{ form.amount }}
                                                 </div>
@@ -91,7 +80,7 @@
                         </button>
 
                         <div style="height: 580px; overflow: scroll">
-                            <table class="table table-striped  mt-3">
+                            <table class="table table-striped  mt-3 text-center">
                                 <thead class="p-3">
                                 <tr>
                                     <th scope="col">Модель коробки</th>
@@ -145,10 +134,43 @@
                         '<td>' + boxModel + '</td>' +
                         '<td>' + amount + '</td>' +
                         '<td>' +
-                        '<a href="" type="button" class="btn btn-primary btn-sm"><i class="bi bi-pencil-square"></i></a>' +
+                        '<button type="button" class="btn btn-danger btn-sm delete-btn ml-2"><i class="bi bi-trash"></i></button>' +
                         '</td>' +
                         '</tr>';
+
                     document.getElementById('order_details_table').insertAdjacentHTML('beforeend', newRow);
+
+                    // Добавьте обработчик события для кнопки "Удалить"
+                    document.querySelectorAll('.delete-btn').forEach(function (button) {
+                        button.addEventListener('click', function () {
+                            let row = button.closest('tr');
+                            row.remove();
+
+                            // Получаем данные из ячеек строки таблицы, которую мы удаляем
+                            let boxModel = row.cells[0].textContent;
+                            let amount = row.cells[1].textContent;
+
+                            // Получаем скрытые поля из формы
+                            let hiddenBoxModelFields = document.querySelectorAll('input[name^="box_model_"]');
+                            let hiddenAmountFields = document.querySelectorAll('input[name^="amount_"]');
+
+                            // Проходим по всем скрытым полям и ищем соответствующие данные
+                            hiddenBoxModelFields.forEach(function (field) {
+                                if (field.value === boxModel) {
+                                    // Если находим соответствие, удаляем это скрытое поле из формы
+                                    field.remove();
+                                }
+                            });
+
+                            hiddenAmountFields.forEach(function (field) {
+                                if (field.value === amount) {
+                                    // Если находим соответствие, удаляем это скрытое поле из формы
+                                    field.remove();
+                                }
+                            });
+                        });
+                    });
+
 
                     // Сбрасываем значения полей
                     document.getElementById('box_model').value = '';
