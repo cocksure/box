@@ -10,14 +10,10 @@ from django.views.generic import CreateView, DetailView
 
 from apps.info.models import Material, BoxSize, BoxType
 from apps.production.forms import BoxModelForm, BoxOrderForm, BoxOrderDetailFormSet
-from apps.production.models import BoxModel, Process, UploadImage, BoxOrder, BoxOrderDetail
+from apps.production.models import BoxModel, Process, BoxOrder, BoxOrderDetail
 from django.db.models import Q
 from django.http import JsonResponse, HttpResponseRedirect
 from django.db import transaction
-
-
-def base_html_view(request):
-	return render(request, 'base.html')
 
 
 class BoxModelListCreate(LoginRequiredMixin, View):
@@ -37,10 +33,8 @@ class BoxModelListCreate(LoginRequiredMixin, View):
 			'box_models': page_obj,
 			'form': BoxModelForm(),
 			'materials': Material.objects.all(),
-			'processes': Process.objects.all(),
 			'box_sizes': BoxSize.objects.all(),
 			'box_types': BoxType.objects.all(),
-			'photos': UploadImage.objects.all(),
 		}
 		return render(request, "production/box_model_list.html", context)
 
@@ -56,10 +50,8 @@ class BoxModelListCreate(LoginRequiredMixin, View):
 			'boxmodels': BoxModel.objects.all().order_by('-created_time'),
 			'form': form,
 			'materials': Material.objects.all(),
-			'processes': Process.objects.all(),
 			'box_sizes': BoxSize.objects.all(),
 			'box_types': BoxType.objects.all(),
-			'photos': UploadImage.objects.all(),
 		}
 		return render(request, "production/box_model_list.html", context)
 
@@ -68,8 +60,7 @@ class BoxModelEdit(View, LoginRequiredMixin):
 	def get(self, request, pk):
 		boxmodel = get_object_or_404(BoxModel, pk=pk)
 		form = BoxModelForm(instance=boxmodel)
-		photos = UploadImage.objects.filter(box_model=boxmodel)
-		context = {'form': form, 'boxmodel': boxmodel, 'photos': photos}
+		context = {'form': form, 'boxmodel': boxmodel}
 		return render(request, 'production/box_model_edit.html', context)
 
 	def post(self, request, pk):
@@ -97,7 +88,6 @@ class BoxOrderListView(View):
 		status = request.GET.get('status')
 		if status:
 			queryset = queryset.filter(status=status)
-		# Если статус не указан, просто показываем все объекты
 
 		page_size = request.GET.get("page_size", 12)
 		paginator = Paginator(queryset, page_size)
@@ -125,7 +115,7 @@ class BoxOrderCreate(CreateView):
 		try:
 			with transaction.atomic():
 				order.save()
-				print("Order saved:", order.id)  # Добавляем отладочный вывод
+				print("Order saved:", order.id)
 
 				detail_counter = int(self.request.POST.get('detail_counter', 0))
 
@@ -139,14 +129,12 @@ class BoxOrderCreate(CreateView):
 							amount=amount,
 							box_order=order
 						)
-						print("Detail created:", box_model_id, amount)  # Добавляем отладочный вывод
+						print("Detail created:", box_model_id, amount)
 
 		except Exception as e:
-			print("Error:", e)  # Добавляем отладочный вывод
 
 			return JsonResponse({'error': str(e)}, status=400)
 		else:
-			print("Redirecting to box-order-list")  # Добавляем отладочный вывод
 
 			return HttpResponseRedirect(reverse_lazy('box-order-list'))
 
@@ -190,15 +178,3 @@ class BoxOrderDetailView(DetailView):
 				return JsonResponse({'error': 'Invalid status parameter'}, status=400)
 		else:
 			return JsonResponse({'error': 'Status parameter missing'}, status=400)
-
-# class BoxOrderUpdate(View):
-# 	def get(self, request, pk):
-# 		order = get_object_or_404(BoxOrder, pk=pk)
-# 		new_status = request.POST.get('status')
-#
-# 		if new_status:
-# 			order.status = new_status
-# 			order.save()
-# 			return JsonResponse({'success': True})
-# 		else:
-# 			return JsonResponse({'success': False, 'error': 'No status provided'}, status=400)

@@ -1,6 +1,7 @@
 from django.urls import path
-from apps.api.views.production import ProcessListCreate, BoxModelListCreate, BoxModelDetail, BoxOrderListCreate, BoxOrderDetailView, \
-	ProductionOrderCreate, UploadImageView
+from apps.api.views.production import ProcessListCreate, BoxModelListCreate, BoxModelDetail, BoxOrderListCreate, \
+	BoxOrderDetailView, \
+	ProductionOrderCreate
 
 app_name = 'api'
 
@@ -11,5 +12,4 @@ urlpatterns = [
 	path('boxorders/', BoxOrderListCreate.as_view(), name='boxorder-list'),
 	path('boxorders/<int:pk>/', BoxOrderDetailView.as_view(), name='boxorder-detail'),
 	path('boxorderdetails/<int:pk>/production-order/', ProductionOrderCreate.as_view(), name='production-order-create'),
-	path('upload/image/', UploadImageView.as_view(), name='upload_image'),
 ]

@@ -131,10 +131,15 @@
     outline: none;
 }
 
+.active {
+    background-color: #79AEC8FF;
+    border-radius: 25px;
+}
+
 .sidebar .navbar .navbar-nav .nav-link:hover,
 .sidebar .navbar .navbar-nav .nav-link.active {
-    color: var(--primary);
-    background: #FFFFFF;
+    /*color: darkgreen;*/
+    /*background: #e9ecef;*/
     border-color: var(--primary);
 }
 
@@ -171,7 +176,23 @@
 .sidebar .navbar .dropdown-item {
     padding-left: 25px;
     border-radius: 0 30px 30px 0;
+    transition: font-size 0.4s ease;
 }
+
+.nav-item.dropdown .nav-link {
+    transition: background-color 0.3s ease;
+}
+
+.dropdown-item {
+    margin-bottom: 4px;
+    text-align: right;
+    color: black;
+}
+
+.dropdown-item:hover {
+    font-size: 18px;
+}
+
 
 .content .navbar .navbar-nav .nav-link {
     margin-left: 25px;
@@ -193,7 +214,7 @@
     align-items: center;
     justify-content: center;
     background: #FFFFFF;
-    border-radius: 40px;
+    border-radius: 25px;
 }
 
 .content .navbar .dropdown-toggle::after {
@@ -235,6 +256,7 @@
     border-radius: 2px;
 }
 
+
 .bootstrap-datetimepicker-widget table td.active,
 .bootstrap-datetimepicker-widget table td.active:hover {
     background: var(--primary);
@@ -275,6 +297,8 @@
     background: var(--dark);
     border-color: var(--primary);
 }
+
+
 
 
 

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from apps.production.models import Process, BoxModel, BoxOrder, BoxOrderDetail, ProductionOrder, UploadImage
+from apps.production.models import Process, BoxModel, BoxOrder, BoxOrderDetail, ProductionOrder
 
 
 class ProcessSerializer(serializers.ModelSerializer):
@@ -8,10 +8,10 @@ class ProcessSerializer(serializers.ModelSerializer):
 		fields = '__all__'
 
 
-class UploadImageSerializer(serializers.ModelSerializer):
-	class Meta:
-		model = UploadImage
-		fields = ('id', 'photo')
+# class UploadImageSerializer(serializers.ModelSerializer):
+# 	class Meta:
+# 		model = UploadImage
+# 		fields = ('id', 'photo')
 
 
 class BoxModelSerializer(serializers.ModelSerializer):
@@ -24,7 +24,8 @@ class BoxModelSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = BoxModel
 		fields = (
-			'id', 'name', 'material', 'material_name', 'type_of_work', 'type_of_work_names', 'box_size', 'box_size_name',
+			'id', 'name', 'material', 'material_name', 'type_of_work', 'type_of_work_names', 'box_size',
+			'box_size_name',
 			'box_type', 'box_type_name', 'photos', 'image_url')
 
 	def get_type_of_work_names(self, obj):

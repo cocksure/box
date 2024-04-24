@@ -9,7 +9,7 @@
         <div class="row g-4">
             <div class="col-sm-12">
                 <div class="bg-light rounded h-100 p-4">
-                    <h6 class="mb-4">Mатериалы</h6>
+                    <h6 class="mb-4">Материалы</h6>
                     <hr>
 
                     <div class="row mb-2">
@@ -17,14 +17,14 @@
                             <form class="d-none d-md-flex mb-3" method="GET" action="{% url 'info:material-list' %}">
                                 <div class="input-group">
                                     <input type="search" name="search" class="form-control border-0"
-                                           placeholder="Search">
+                                           placeholder="Поиск">
                                     <div class="input-group-append">
                                         <button type="submit" class="btn btn-outline-primary mx-3">Найти</button>
                                     </div>
                                 </div>
                             </form>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-6 text-end">
                             <button type="button" class="btn btn-primary" id="openCreateModalBtn" data-bs-toggle="modal"
                                     data-bs-target="#myModalCreate">Создать
                             </button>
@@ -54,39 +54,40 @@
 
                     <!--  Table -->
 
-                    <table class="table table-striped">
-                        <thead>
-                        <tr>
-                            <th scope="col">Код</th>
-                            <th scope="col">Названия</th>
-                            <th scope="col">Тип материала</th>
-                            <th scope="col">Плотность материала</th>
-                            <th scope="col">Действия</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        {% for material in materials %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
                             <tr>
-                                <td>{{ material.code }}</td>
-                                <td>{{ material.name }}</td>
-                                <td>{{ material.material_type }}</td>
-                                <td>{{ material.material_thickness }}</td>
-
-                                <td>
-                                    <a href="{% url 'info:material-edit' material.pk %}" type="button"
-                                       class="btn btn-primary btn-sm"><i class="bi bi-pencil-square"></i>
-                                    </a>
-                                </td>
+                                <th scope="col">Код</th>
+                                <th scope="col">Название</th>
+                                <th scope="col">Тип материала</th>
+                                <th scope="col">Плотность материала</th>
+                                <th scope="col">Действия</th>
                             </tr>
-                        {% endfor %}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                            {% for material in materials %}
+                                <tr>
+                                    <td>{{ material.code }}</td>
+                                    <td>{{ material.name }}</td>
+                                    <td>{{ material.material_type }}</td>
+                                    <td>{{ material.material_thickness }}</td>
+                                    <td>
+                                        <a href="{% url 'info:material-edit' material.pk %}" type="button"
+                                           class="btn btn-primary btn-sm"><i class="bi bi-pencil-square"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
 
                     <!-- Pagination start -->
                     <div class="row justify-content-end">
                         <div class="col-md-12">
                             <nav aria-label="Page navigation example">
-                                <ul class="pagination">
+                                <ul class="pagination justify-content-end">
                                     {% if materials.has_previous %}
                                         <li class="page-item">
                                             <a class="page-link" href="?page=1">&laquo; В начало</a>

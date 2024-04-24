@@ -50,39 +50,39 @@
                         </div>
                     </div>
 
-                    <table class="table table-striped">
-                        <thead>
-                        <tr>
-                            <th scope="col">Название</th>
-                            <th scope="col">Материал модели</th>
-                            <th scope="col">Размер</th>
-                            <th scope="col">Тип модели</th>
-                            <th scope="col">Менежер</th>
-
-                            <th scope="col">Фото</th>
-                            <th scope="col">Действия</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        {% for box_model in box_models %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
                             <tr>
-                                <td>{{ box_model.name }}</td>
-                                <td>{{ box_model.material }}</td>
-                                <td>{{ box_model.box_size }}</td>
-                                <td>{{ box_model.box_type }}</td>
-                                <td>{{ box_model.created_by }}</td>
-
-                                <td><img src="{{ box_model.photos.photo.url }}" alt="Box Photo"
-                                         style="max-width: 50px;"></td>
-                                <td>
-                                    <a href="{% url 'box-model-edit' pk=box_model.pk %}" type="button"
-                                       class="btn btn-primary btn-sm"><i class="bi bi-pencil-square"></i>
-                                    </a>
-                                </td>
+                                <th scope="col">Название</th>
+                                <th scope="col">Материал модели</th>
+                                <th scope="col">Размер</th>
+                                <th scope="col">Тип модели</th>
+                                <th scope="col">Менеджер</th>
+                                <th scope="col">Фото</th>
+                                <th scope="col">Действия</th>
                             </tr>
-                        {% endfor %}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                            {% for box_model in box_models %}
+                                <tr>
+                                    <td>{{ box_model.name }}</td>
+                                    <td>{{ box_model.material }}</td>
+                                    <td>{{ box_model.box_size }}</td>
+                                    <td>{{ box_model.box_type }}</td>
+                                    <td>{{ box_model.created_by }}</td>
+                                    <td><img src="{{ box_model.photos.photo.url }}" alt="Box Photo"
+                                             style="max-width: 100px;" class="img-fluid"></td>
+                                    <td>
+                                        <a href="{% url 'box-model-edit' pk=box_model.pk %}" type="button"
+                                           class="btn btn-primary btn-sm"><i class="bi bi-pencil-square"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
 
                     <!-- Pagination start -->
                     <div class="row justify-content-end">

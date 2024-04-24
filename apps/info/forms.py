@@ -1,6 +1,7 @@
 from django import forms
 
-from apps.info.models import MaterialType, Material, Warehouse, Firm, Specification, BoxSize, BoxType
+from apps.info.models import MaterialType, Material, Warehouse, Firm, Specification, BoxSize, BoxType, MaterialGroup, \
+	MaterialSpecialGroup, Brand
 from apps.users.models import CustomUser
 
 
@@ -16,12 +17,16 @@ class MaterialTypeForm(forms.ModelForm):
 class MaterialForm(forms.ModelForm):
 	class Meta:
 		model = Material
-		fields = ['code', 'name', 'material_type', 'material_thickness']
+		fields = ['name', 'material_group', 'special_group', 'brand', 'material_type', 'material_thickness',
+				  'unit_of_measurement']
 		widgets = {
-			'code': forms.TextInput(attrs={'class': 'form-control'}),
 			'name': forms.TextInput(attrs={'class': 'form-control'}),
+			'material_group': forms.Select(attrs={'class': 'form-control'}),
+			'special_group': forms.Select(attrs={'class': 'form-control'}),
+			'brand': forms.Select(attrs={'class': 'form-control'}),
 			'material_type': forms.Select(attrs={'class': 'form-control'}),
-			'material_thickness': forms.TextInput(attrs={'class': 'form-control'}),
+			'material_thickness': forms.NumberInput(attrs={'class': 'form-control'}),
+			'unit_of_measurement': forms.Select(attrs={'class': 'form-control'}),
 		}
 
 
@@ -49,14 +54,16 @@ class WarehouseForm(forms.ModelForm):
 class FirmForm(forms.ModelForm):
 	class Meta:
 		model = Firm
-		fields = ['code', 'name', 'legal_address', 'actual_address', 'phone_number', 'license_number']
+		fields = ['name', 'type_firm', 'legal_address', 'actual_address', 'phone_number',
+				  'license_number', 'mfo']
 		widgets = {
-			'code': forms.TextInput(attrs={'class': 'form-control'}),
 			'name': forms.TextInput(attrs={'class': 'form-control'}),
+			'type_firm': forms.Select(attrs={'class': 'form-control'}),
 			'legal_address': forms.TextInput(attrs={'class': 'form-control'}),
 			'actual_address': forms.TextInput(attrs={'class': 'form-control'}),
 			'phone_number': forms.TextInput(attrs={'class': 'form-control'}),
 			'license_number': forms.TextInput(attrs={'class': 'form-control'}),
+			'mfo': forms.TextInput(attrs={'class': 'form-control'}),
 		}
 
 
@@ -75,9 +82,16 @@ class SpecificationForm(forms.ModelForm):
 class BoxSizesForm(forms.ModelForm):
 	class Meta:
 		model = BoxSize
-		fields = ['name', ]
+		fields = ['width', 'height', 'length']
 		widgets = {
-			'name': forms.TextInput(attrs={'class': 'form-control'}),
+			'width': forms.NumberInput(attrs={'class': 'form-control'}),
+			'height': forms.NumberInput(attrs={'class': 'form-control'}),
+			'length': forms.NumberInput(attrs={'class': 'form-control'}),
+		}
+		labels = {
+			'width': 'Ширина (в мм)',
+			'height': 'Высота (в мм)',
+			'length': 'Длина (в мм)',
 		}
 
 
@@ -85,6 +99,33 @@ class BoxTypesForm(forms.ModelForm):
 	class Meta:
 		model = BoxType
 		fields = ['name', ]
+		widgets = {
+			'name': forms.TextInput(attrs={'class': 'form-control'}),
+		}
+
+
+class MaterialGroupForm(forms.ModelForm):
+	class Meta:
+		model = MaterialGroup
+		fields = ['name']
+		widgets = {
+			'name': forms.TextInput(attrs={'class': 'form-control'}),
+		}
+
+
+class MaterialSpecialGroupForm(forms.ModelForm):
+	class Meta:
+		model = MaterialSpecialGroup
+		fields = ['name']
+		widgets = {
+			'name': forms.TextInput(attrs={'class': 'form-control'}),
+		}
+
+
+class BrandForm(forms.ModelForm):
+	class Meta:
+		model = Brand
+		fields = ['name']
 		widgets = {
 			'name': forms.TextInput(attrs={'class': 'form-control'}),
 		}

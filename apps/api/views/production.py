@@ -1,19 +1,13 @@
 from django.shortcuts import get_object_or_404
 from rest_framework import generics
 
-from apps.production.models import BoxModel, BoxOrder, ProductionOrder, Process, BoxOrderDetail, UploadImage
+from apps.production.models import BoxModel, BoxOrder, ProductionOrder, Process, BoxOrderDetail
 from apps.api.serializers.production import BoxModelSerializer, BoxOrderSerializer, ProcessSerializer, \
-	ProductionOrderSerializer, \
-	UploadImageSerializer
+	ProductionOrderSerializer
 from rest_framework.permissions import BasePermission
 from rest_framework.response import Response
 from datetime import datetime
 from rest_framework import status
-
-
-class UploadImageView(generics.ListCreateAPIView):
-	queryset = UploadImage.objects.all()
-	serializer_class = UploadImageSerializer
 
 
 class BoxModelListCreate(generics.ListCreateAPIView):

@@ -1,7 +1,7 @@
 from django.contrib import admin
 from import_export.admin import ImportExportModelAdmin
 from apps.info import models
-from apps.info.models import BoxSize, BoxType
+from apps.info.models import BoxSize, BoxType, Brand, MaterialGroup, MaterialSpecialGroup
 from apps.info.resources import MaterialResource
 
 
@@ -15,13 +15,14 @@ class MaterialTypeAdmin(admin.ModelAdmin):
 
 @admin.register(models.Material)
 class MaterialAdmin(ImportExportModelAdmin, admin.ModelAdmin):
-	list_display = ('name', 'code', 'material_type', 'material_thickness',)
+	list_display = ('name', 'code', 'material_type', 'material_thickness', 'unit_of_measurement')
 	search_fields = ('code', 'name',)
 	list_filter = ('material_type',)
 	list_per_page = 100
 	date_hierarchy = 'created_time'
 	readonly_fields = ('created_time', 'updated_time')
-	fields = ('code', 'name', 'material_type', 'material_thickness')
+	fields = ('code', 'name', 'material_group', 'special_group', 'brand', 'material_type', 'material_thickness',
+			  'unit_of_measurement')
 	list_per_page = 100
 
 	resource_class = MaterialResource
@@ -62,16 +63,15 @@ class SpecificationAdmin(admin.ModelAdmin):
 class FirmAdmin(admin.ModelAdmin):
 	list_display = ('name', 'phone_number', 'code', 'created_by', 'created_time')
 	search_fields = ('code', 'name')
-	list_filter = ()
+	list_filter = ('type_firm', 'is_active')
 	list_per_page = 100
 	date_hierarchy = 'created_time'
-	readonly_fields = (
-		'created_time', 'updated_time', 'created_by', 'updated_by')
+	readonly_fields = ('created_time', 'updated_time', 'created_by', 'updated_by')
 	fieldsets = (
 		('Basic Information', {
 			'fields': (
-				'code', 'name', 'legal_address', 'actual_address', 'phone_number',
-				'license_number',
+				'code', 'name', 'type_firm', 'is_active', 'legal_address', 'actual_address', 'phone_number',
+				'license_number', 'mfo',
 			)
 		}),
 		('Timestamps', {
@@ -83,11 +83,24 @@ class FirmAdmin(admin.ModelAdmin):
 
 @admin.register(BoxSize)
 class BoxSizeAdmin(admin.ModelAdmin):
+	fields = ('width', 'height', 'length')
+	list_display = ('name', 'width', 'height', 'length')
+	list_per_page = 100
+
+
+@admin.register(MaterialSpecialGroup)
+class MaterialSpecialGroupAdmin(admin.ModelAdmin):
 	list_display = ('name',)
 	list_per_page = 100
 
 
-@admin.register(BoxType)
-class BoxTypeAdmin(admin.ModelAdmin):
+@admin.register(MaterialGroup)
+class MaterialGroupAdmin(admin.ModelAdmin):
+	list_display = ('name',)
+	list_per_page = 100
+
+
+@admin.register(Brand)
+class BrandAdmin(admin.ModelAdmin):
 	list_display = ('name',)
 	list_per_page = 100

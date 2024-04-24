@@ -1,0 +1,142 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %} Список марок {% endblock title %}
+
+{% block content %}
+
+    <div class="container-fluid pt-4 px-4">
+        <div class="row g-4">
+            <div class="col-sm-12">
+                <div class="bg-light rounded h-100 p-4">
+                    <h6 class="mb-4">Группа материалов</h6>
+                    <hr>
+
+                    <!-- Search -->
+                    <div class="row mb-2">
+                        <div class="col-md-6">
+                            <form class="d-none d-md-flex mb-3" method="GET"
+                                  action="{% url 'info:material-group-list' %}">
+                                <div class="input-group">
+                                    <input type="search" name="search" class="form-control border-0"
+                                           placeholder="Поиск">
+                                    <div class="input-group-append">
+                                        <button type="submit" class="btn btn-outline-primary mx-3">Найти</button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="col-md-6 text-end">
+                            <button type="button" class="btn btn-primary" id="openCreateModalBtn" data-bs-toggle="modal"
+                                    data-bs-target="#myModalCreate">Создать
+                            </button>
+                        </div>
+                    </div>
+
+                    <!--  Modal -->
+                    <div class="modal fade" id="myModalCreate" tabindex="-1" role="dialog"
+                         aria-labelledby="myModalLabelCreate">
+                        <div class="modal-dialog" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h4 class="modal-title" id="myModalLabelCreate">Создание группы</h4>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                            aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <form id="myModalCreateForm" method="post"
+                                          action="{% url 'info:material-group-list' %}">
+                                        {% csrf_token %}
+                                        {{ form.as_p }}
+                                        <button type="submit" class="btn btn-primary">Создать</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!--  Table -->
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                            <tr class="text-center">
+                                <th scope="col">Название</th>
+                                <th scope="col">Действия</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for groups in material_groups %}
+                                <tr class="text-center">
+                                    <td>{{ groups.name }}</td>
+                                    <td>
+                                        <a href="" type="button" class="btn btn-primary btn-sm"><i
+                                                class="bi bi-pencil-square"></i></a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Pagination start -->
+                    <div class="row justify-content-end">
+                        <div class="col-md-12">
+                            <nav aria-label="Page navigation example">
+                                <ul class="pagination justify-content-end">
+                                    {% if material_groups.has_previous %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page=1">&laquo; В начало</a>
+                                        </li>
+                                        <li class="page-item">
+                                            <a class="page-link"
+                                               href="?page={{ material_groups.previous_page_number }}">Пред</a>
+                                        </li>
+                                    {% endif %}
+
+                                    {% for i in material_groups.paginator.page_range %}
+                                        <li class="page-item {% if i == material_groups.number %}active{% endif %}">
+                                            <a class="page-link" href="?page={{ i }}">{{ i }}</a>
+                                        </li>
+                                    {% endfor %}
+
+                                    {% if material_groups.has_next %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ material_groups.next_page_number }}">След</a>
+                                        </li>
+                                        <li class="page-item">
+                                            <a class="page-link"
+                                               href="?page={{ material_groups.paginator.num_pages }}">&raquo;</a>
+                                        </li>
+                                    {% endif %}
+                                </ul>
+                            </nav>
+                        </div>
+                    </div>
+                    <!-- Pagination end -->
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Table End -->
+
+    {% block dashboard %}
+    {% endblock %}
+
+    <script>
+        $(document).ready(function () {
+            $('#myModal').on('show.bs.modal', function () {
+                $('#myModalForm')[0].reset();
+
+                $('#name').val('Значение по умолчанию');
+            });
+
+            $('#openModalBtn').click(function () {
+                $('#myModal').modal('show');
+            });
+        });
+
+    </script>
+
+{% endblock %}

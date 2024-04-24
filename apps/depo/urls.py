@@ -1,12 +1,13 @@
 from django.urls import path
 
-from apps.api.views.incoming import IncomingMaterialListView
-from apps.depo.views import IncomingListView, IncomingDetailView
+from apps.depo.views import IncomingListView, IncomingCreate, OutgoingCreate, OutgoingListView
 
 app_name = 'depo'
 
 urlpatterns = [
 	path('incoming/', IncomingListView.as_view(), name='incoming-list'),
-	path('incoming-materials/', IncomingMaterialListView.as_view(), name='incoming-materials-list'),
-	path('incoming/<int:pk>/', IncomingDetailView.as_view(), name='incoming-detail'),
+	path('incoming/create/', IncomingCreate.as_view(), name='incoming-create'),
+
+	path('outgoing/', OutgoingListView.as_view(), name='outgoing-list'),
+	path('outgoing/create/', OutgoingCreate.as_view(), name='outgoing-create'),
 ]

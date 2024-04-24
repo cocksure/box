@@ -3,7 +3,6 @@
 
 
 {% block content %}
-    <!-- Table Start -->
     <div class="container-fluid pt-4 px-4">
         <div class="row g-4">
             <div class="col-sm-12">
@@ -24,10 +23,11 @@
                             </form>
                         </div>
                         <div class="col-md-6">
-                            <a href="{% url 'depo:incoming-create' %}" type="button" class="btn btn-primary" >Создать</a>
+                            <a href="{% url 'depo:incoming-create' %}" type="button" class="btn btn-primary">Создать</a>
                         </div>
                     </div>
 
+                    <!-- Table start -->
                     <table class="table table-striped">
                         <thead>
                         <tr>
@@ -58,6 +58,8 @@
                         {% endfor %}
                         </tbody>
                     </table>
+                    <!-- Table end -->
+
 
                     <!-- Pagination start -->
                     <div class="row justify-content-end">
@@ -103,18 +105,5 @@
     {% block dashboard %}
     {% endblock %}
 
-    <script>
-        $(document).ready(function () {
-            $('#myModal').on('show.bs.modal', function () {
-                $('#myModalForm')[0].reset();
-
-                $('#name').val('Значение по умолчанию');
-            });
-
-            $('#openModalBtn').click(function () {
-                $('#myModal').modal('show');
-            });
-        });
-    </script>
 
 {% endblock %}

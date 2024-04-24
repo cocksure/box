@@ -10,38 +10,39 @@
                 <div class="">
                     <div class="row bg-light rounded mb-3 p-2">
                         <div class="row ">
-                            <div class="col-md-6 ">
+                            <div class="col-md-6">
                                 <h6 class="mb-4">Создание заказа</h6>
                             </div>
                             <div class="col-md-6 text-end">
-                                <button type="submit" form="id_form" class="btn btn-success w-30 mb-3">Создать Заказ
+                                <button type="submit" form="id_form" class="btn btn-success w-100 mb-3">Создать Заказ
                                 </button>
                             </div>
-                            <hr>
+                            <hr class="my-0">
                         </div>
 
-                        <div class="row  rounded ">
-                            <form id="id_form" method="post" class="form-inline">
+                        <div class="row rounded ">
+                            <form id="id_form" method="post" class="row g-3">
                                 {% csrf_token %}
-                                <div class="row mb-3">
-                                    <div class="col-md-3">
-                                        {{ form.customer }}
-                                    </div>
-                                    <div class="col-md-3">
-                                        {{ form.type_order }}
-                                    </div>
-                                    <div class="col-md-3">
-                                        {{ form.specification }}
-                                    </div>
-                                    <div class="col-md-3">
-                                        {{ form.date_of_production }}
-                                    </div>
+                                <div class="col-md-3">
+                                    {{ form.customer }}
+                                </div>
+                                <div class="col-md-3">
+                                    {{ form.customer_buyer }}
+                                </div>
+                                <div class="col-md-2">
+                                    {{ form.type_order }}
+                                </div>
+                                <div class="col-md-2">
+                                    {{ form.specification }}
+                                </div>
+                                <div class="col-md-2">
+                                    {{ form.date_of_production }}
                                 </div>
                                 <input type="hidden" id="detail_counter" name="detail_counter" value="1">
-
                             </form>
                         </div>
                     </div>
+
                     <!-- Модальное окно для создания детали заказа -->
                     <div class="modal fade" id="myModalCreate" tabindex="-1" role="dialog"
                          aria-labelledby="myModalLabelCreate">
@@ -52,7 +53,7 @@
                                     <button type="button" class="btn-close" data-bs-dismiss="modal"
                                             aria-label="Close"></button>
                                 </div>
-                                <div class="modal-body row">
+                                <div class="modal-body">
                                     <form id="myModalCreateForm">
                                         <div class="mb-3">
                                             <label for="box_model">Модель коробки</label>
@@ -63,8 +64,7 @@
                                                 </div>
                                             {% endfor %}
                                         </div>
-                                        <button type="button" class="col-md-6 btn btn-primary" id="addDetailBtn">
-                                            Добавить
+                                        <button type="button" class="btn btn-primary w-100" id="addDetailBtn">Добавить
                                         </button>
                                     </form>
                                 </div>
@@ -74,14 +74,13 @@
 
                     <!-- Таблица для отображения деталей заказа -->
                     <div class="row p-3 bg-light rounded">
-                        <button type="button" class="btn btn-primary btn-sm " id="openCreateModalBtn"
-                                data-bs-toggle="modal"
-                                data-bs-target="#myModalCreate">Добавить
+                        <button type="button" class="btn btn-primary btn-sm w-100 mb-3" id="openCreateModalBtn"
+                                data-bs-toggle="modal" data-bs-target="#myModalCreate">Добавить
                         </button>
 
-                        <div style="height: 580px; overflow: scroll">
-                            <table class="table table-striped  mt-3 text-center">
-                                <thead class="p-3">
+                        <div style="max-height: 400px; overflow-y: auto;">
+                            <table class="table table-striped mt-3 text-center">
+                                <thead>
                                 <tr>
                                     <th scope="col">Модель коробки</th>
                                     <th scope="col">Количество</th>
@@ -98,6 +97,7 @@
             </div>
         </div>
     </div>
+
 
     {% block dashboard %}
     {% endblock %}
@@ -197,8 +197,8 @@
                 let orderDetails = document.querySelectorAll('.box_model, .amount');
 
                 // Loop through each detail field and append its data to the formData
-                orderDetails.forEach(function (detail) {
-                    formData.append(detail.name, detail.value);
+                orderDetails.forEach(function (material) {
+                    formData.append(material.name, material.value);
                 });
 
                 fetch('{% url "box-order-create" %}', {

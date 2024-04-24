@@ -18,14 +18,14 @@
                             <form class="d-none d-md-flex mb-3" method="GET" action="{% url 'info:firm-list' %}">
                                 <div class="input-group">
                                     <input type="search" name="search" class="form-control border-0"
-                                           placeholder="Search">
+                                           placeholder="Поиск">
                                     <div class="input-group-append">
                                         <button type="submit" class="btn btn-outline-primary mx-3">Найти</button>
                                     </div>
                                 </div>
                             </form>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-6 text-end">
                             <button type="button" class="btn btn-primary" id="openCreateModalBtn" data-bs-toggle="modal"
                                     data-bs-target="#myModalCreate">Создать
                             </button>
@@ -38,7 +38,7 @@
                         <div class="modal-dialog" role="document">
                             <div class="modal-content">
                                 <div class="modal-header">
-                                    <h4 class="modal-title" id="myModalLabelCreate">Создание фирм</h4>
+                                    <h4 class="modal-title" id="myModalLabelCreate">Создание фирмы</h4>
                                     <button type="button" class="btn-close" data-bs-dismiss="modal"
                                             aria-label="Close"></button>
                                 </div>
@@ -54,42 +54,43 @@
                     </div>
 
                     <!--  Table -->
-
-                    <table class="table table-striped">
-                        <thead>
-                        <tr class="text-center">
-                            <th scope="col">Код</th>
-                            <th scope="col">Названия</th>
-                            <th scope="col">Официальный адрес</th>
-                            <th scope="col">Фактический адрес</th>
-                            <th scope="col">Телефон</th>
-                            <th scope="col">Лицензия</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        {% for firm in firms %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
                             <tr class="text-center">
-                                <td>{{ firm.code }}</td>
-                                <td>{{ firm.name }}</td>
-                                <td>{{ firm.legal_address }}</td>
-                                <td>{{ firm.actual_address }}</td>
-                                <td>{{ firm.phone_number }}</td>
-                                <td>{{ firm.license_number }}</td>
-                                <td>
-                                    <a href="" type="button" class="btn btn-primary btn-sm"><i
-                                            class="bi bi-pencil-square"></i></a>
-                                </td>
+                                <th scope="col">Код</th>
+                                <th scope="col">Название</th>
+                                <th scope="col">Официальный адрес</th>
+                                <th scope="col">Фактический адрес</th>
+                                <th scope="col">Телефон</th>
+                                <th scope="col">Лицензия</th>
+                                <th scope="col">Действия</th>
                             </tr>
-                        {% endfor %}
-
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                            {% for firm in firms %}
+                                <tr class="text-center">
+                                    <td>{{ firm.code }}</td>
+                                    <td>{{ firm.name }}</td>
+                                    <td>{{ firm.legal_address }}</td>
+                                    <td>{{ firm.actual_address }}</td>
+                                    <td>{{ firm.phone_number }}</td>
+                                    <td>{{ firm.license_number }}</td>
+                                    <td>
+                                        <a href="" type="button" class="btn btn-primary btn-sm"><i
+                                                class="bi bi-pencil-square"></i></a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
 
                     <!-- Pagination start -->
                     <div class="row justify-content-end">
                         <div class="col-md-12">
                             <nav aria-label="Page navigation example">
-                                <ul class="pagination">
+                                <ul class="pagination justify-content-end">
                                     {% if firms.has_previous %}
                                         <li class="page-item">
                                             <a class="page-link" href="?page=1">&laquo; В начало</a>

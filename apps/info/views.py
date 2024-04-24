@@ -5,8 +5,9 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.views import View
 
 from apps.info.forms import MaterialTypeForm, WarehouseForm, MaterialForm, FirmForm, SpecificationForm, BoxSizesForm, \
-	BoxTypesForm
-from apps.info.models import MaterialType, Material, Warehouse, Firm, Specification, BoxSize, BoxType
+	BoxTypesForm, MaterialSpecialGroupForm, BrandForm, MaterialGroupForm
+from apps.info.models import MaterialType, Material, Warehouse, Firm, Specification, BoxSize, BoxType, \
+	MaterialSpecialGroup, Brand, MaterialGroup
 from apps.shared.views import BaseListView
 
 
@@ -26,7 +27,7 @@ class MaterialTypeListCreate(BaseListView):
 		if form.is_valid():
 			material_type = form.save(commit=False)
 			material_type.save()
-			return redirect('info:material-type-list')
+			return redirect('info:material_type-list')
 		context = {
 			'material_types': MaterialType.objects.all(),
 			'form': form,
@@ -156,13 +157,12 @@ class BoxSizeListCreate(BaseListView):
 	def post(self, request):
 		form = BoxSizesForm(request.POST)
 		if form.is_valid():
-			box_size = form.save(commit=False)
-			box_size.save()
+			form.save()
 			return redirect('info:box_size-list')
+		box_sizes = BoxSize.objects.all()
 		context = {
-			'box_sizes': BoxSize.objects.all(),
+			'box_sizes': box_sizes,
 			'form': form,
-
 		}
 		return render(request, "info/box_size_list.html", context)
 
@@ -208,3 +208,72 @@ class MaterialEditView(View, LoginRequiredMixin):
 			messages.error(request, 'Please correct the errors below.')
 		context = {'form': form, 'material': material}
 		return render(request, 'info/material_edit.html', context)
+
+
+class MaterialGroupListCreate(View):
+	def get(self, request):
+		material_groups = MaterialGroup.objects.all()
+		context = {
+			'material_groups': material_groups,
+			'form': MaterialGroupForm(),
+		}
+		return render(request, "info/material_group_list.html", context)
+
+	def post(self, request):
+		form = MaterialGroupForm(request.POST)
+		if form.is_valid():
+			form.save()
+			return redirect('info:material-group-list')
+		else:
+			material_groups = MaterialGroup.objects.all()
+			context = {
+				'material_groups': material_groups,
+				'form': form,
+			}
+			return render(request, "info/material_group_list.html", context)
+
+
+class MaterialSpecialGroupListCreate(View):
+	def get(self, request):
+		material_special_groups = MaterialSpecialGroup.objects.all()
+		context = {
+			'material_special_groups': material_special_groups,
+			'form': MaterialSpecialGroupForm(),
+		}
+		return render(request, "info/material_special_group_list.html", context)
+
+	def post(self, request):
+		form = MaterialSpecialGroupForm(request.POST)
+		if form.is_valid():
+			form.save()
+			return redirect('info:special-group-list')
+		else:
+			material_special_groups = MaterialSpecialGroup.objects.all()
+			context = {
+				'material_special_groups': material_special_groups,
+				'form': form,
+			}
+			return render(request, "info/material_special_group_list.html", context)
+
+
+class BrandListCreate(View):
+	def get(self, request):
+		brands = Brand.objects.all()
+		context = {
+			'brands': brands,
+			'form': BrandForm(),
+		}
+		return render(request, "info/brand_list.html", context)
+
+	def post(self, request):
+		form = BrandForm(request.POST)
+		if form.is_valid():
+			form.save()
+			return redirect('info:brand-list')
+		else:
+			brands = Brand.objects.all()
+			context = {
+				'brands': brands,
+				'form': form,
+			}
+			return render(request, "info/brand_list.html", context)
