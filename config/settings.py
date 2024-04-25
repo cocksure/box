@@ -25,6 +25,7 @@ INSTALLED_APPS = [
 	'import_export',
 	'django_filters',
 	'allauth',
+	'drf_yasg',
 	'allauth.account',
 	'allauth.socialaccount',
 
@@ -35,7 +36,6 @@ INSTALLED_APPS = [
 	'apps.shared',
 	'apps.depo',
 	'apps.hr',
-	'apps.api',
 
 ]
 

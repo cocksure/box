@@ -1,12 +1,9 @@
 black==24.2.0
-dj-rest-auth==5.0.2
 Django==5.0.2
 django-allauth==0.61.1
-django-cors-headers==4.3.1
 django-environ==0.11.2
 django-filter==23.5
 django-import-export==3.3.7
-djangorestframework==3.14.0
 drf-yasg==1.21.7
 mypy-extensions==1.0.0
 pillow==10.2.0
