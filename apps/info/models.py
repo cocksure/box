@@ -1,3 +1,5 @@
+import uuid
+
 import transliterate
 from django.utils.text import slugify
 from django.db import models
@@ -49,7 +51,8 @@ class Material(BaseModel):
 		if not self.code:
 			material_group_name = self.material_group.name[:5]
 			transliterated_name = slugify(transliterate.translit(material_group_name, 'ru', reversed=True))
-			self.code = f"{transliterated_name}-{self.material_group_id}"
+			short_uuid = str(uuid.uuid4())[:4]
+			self.code = f"{transliterated_name}-{short_uuid}"
 		super().save(*args, **kwargs)
 
 
