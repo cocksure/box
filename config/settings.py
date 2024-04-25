@@ -10,7 +10,7 @@ environ.Env.read_env(os.path.join(BASE_DIR, './.env'))
 SECRET_KEY = env('SECRET_KEY')
 DEBUG = env('DEBUG', default=False)
 
-ALLOWED_HOSTS = ['boxp.pythonanywhere.com', '127.0.0.1']
+ALLOWED_HOSTS = ['box.pythonanywhere.com', '127.0.0.1']
 
 INSTALLED_APPS = [
 	'django.contrib.sites',
