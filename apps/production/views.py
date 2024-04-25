@@ -10,7 +10,7 @@ from django.views.generic import CreateView, DetailView
 
 from apps.info.models import Material, BoxSize, BoxType
 from apps.production.forms import BoxModelForm, BoxOrderForm, BoxOrderDetailFormSet
-from apps.production.models import BoxModel, Process, BoxOrder, BoxOrderDetail
+from apps.production.models import BoxModel, BoxOrder, BoxOrderDetail
 from django.db.models import Q
 from django.http import JsonResponse, HttpResponseRedirect
 from django.db import transaction
@@ -41,7 +41,7 @@ class BoxModelListCreate(LoginRequiredMixin, View):
 		return render(request, "production/box_model_list.html", context)
 
 	def post(self, request):
-		form = BoxModelForm(request.POST)
+		form = BoxModelForm(request.POST, request.FILES)
 		if form.is_valid():
 			boxmodel = form.save(commit=False)
 			boxmodel.created_by = request.user

@@ -1,5 +1,4 @@
 import uuid
-
 import transliterate
 from django.utils.text import slugify
 from django.db import models
@@ -33,7 +32,7 @@ class Material(BaseModel):
 	material_group = models.ForeignKey('MaterialGroup', on_delete=models.CASCADE, verbose_name="Группа материала")
 	special_group = models.ForeignKey('MaterialSpecialGroup', on_delete=models.CASCADE,
 									  verbose_name="Специальная группа")
-	brand = models.ForeignKey('Brand', on_delete=models.CASCADE, verbose_name="Бренд")
+	brand = models.ForeignKey('Brand', on_delete=models.SET_NULL, null=True, verbose_name="Бренд")
 	material_type = models.ForeignKey(MaterialType, on_delete=models.CASCADE, max_length=100,
 									  verbose_name="Тип материала")
 	material_thickness = models.FloatField(verbose_name="Толщина материала")

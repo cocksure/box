@@ -1,9 +1,11 @@
 from django.db import models
 
 from apps.depo.models.outgoing import Outgoing
+from apps.depo.models.stock import Stock
 from apps.depo.services import validate_incoming, process_incoming
 from apps.info.models import Material, Warehouse
 from apps.shared.models import BaseModel
+from django.db.models import F
 
 
 class Incoming(BaseModel):
@@ -55,6 +57,13 @@ class IncomingMaterial(models.Model):
 	amount = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Количество")
 	material_party = models.CharField(max_length=100, null=True, blank=True, verbose_name="Партия материала")
 	comment = models.TextField(max_length=1000, null=True, blank=True, verbose_name="Комментарий")
+
+	def delete(self, *args, **kwargs):
+		material = self.material
+		warehouse = self.incoming.warehouse if hasattr(self, 'incoming') else None
+		super().delete(*args, **kwargs)
+		if warehouse:
+			Stock.objects.filter(material=material, warehouse=warehouse).update(amount=F('amount') - self.amount)
 
 	class Meta:
 		verbose_name = "Материал прихода"

@@ -24,7 +24,11 @@ class ProcessAdmin(admin.ModelAdmin):
 
 @admin.register(BoxModel)
 class BoxModelAdmin(admin.ModelAdmin):
-	list_display = ('name', 'material', 'box_size', 'box_type')
+	list_display = ('name', 'material', 'box_size', 'box_type', 'photo')
+	fields = (
+		'name', 'material', 'box_size', 'box_type', 'photo', 'created_by', "updated_by", 'created_time',)
+	search_fields = ('name',)
+	list_filter = ('box_type',)
 
 
 @admin.register(BoxOrder)

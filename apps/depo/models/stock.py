@@ -3,7 +3,7 @@ from apps.info.models import Material, Warehouse
 
 
 class Stock(models.Model):
-	material = models.ForeignKey(Material, on_delete=models.CASCADE, verbose_name="Материал")
+	material = models.ForeignKey(Material, on_delete=models.SET_NULL, null=True, verbose_name="Материал")
 	warehouse = models.ForeignKey(Warehouse, on_delete=models.CASCADE, verbose_name="Склад")
 	amount = models.IntegerField(default=0, verbose_name="Количество")
 

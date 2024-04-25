@@ -2,25 +2,37 @@ from django import forms
 from django.forms import inlineformset_factory
 
 from apps.info.models import Material, BoxSize, BoxType, Firm
-from apps.production.models import BoxModel, Process
+from apps.production.models import BoxModel
 from .models import BoxOrder, BoxOrderDetail
 
 
 class BoxModelForm(forms.ModelForm):
 	class Meta:
 		model = BoxModel
-		fields = ['name', 'material', 'box_size', 'box_type', 'photo']
+		fields = ['name', 'material', 'box_size', 'box_type', 'closure_type', 'additional_properties', 'max_load',
+				  'color', 'comment', 'photo']
 		labels = {
 			'name': '',
+			'closure_type': 'Тип замыкания',
+			'additional_properties': 'Дополнительные свойства',
+			'max_load': 'Максимальная нагрузка',
+			'color': 'Цвет',
+			'comment': 'Комментарий',
 		}
 		widgets = {
-			'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Введите название'}),
-			'material': forms.Select(attrs={'class': 'form-select', 'placeholder': 'Выберите материал'}),
-
-			'box_size': forms.Select(attrs={'class': 'form-select', 'placeholder': 'Выберите размер'}),
-			'box_type': forms.Select(attrs={'class': 'form-select', 'placeholder': 'Выберите тип коробки'}),
+			'name': forms.TextInput(attrs={'class': 'form-control mb-3 mt-3', 'placeholder': 'Введите название'}),
+			'material': forms.Select(attrs={'class': 'form-select mb-3', 'placeholder': 'Выберите материал'}),
+			'box_size': forms.Select(attrs={'class': 'form-select mb-3', 'placeholder': 'Выберите размер'}),
+			'box_type': forms.Select(attrs={'class': 'form-select mb-4', 'placeholder': 'Выберите тип коробки'}),
+			'closure_type': forms.Select(attrs={'class': 'form-select mb-3', 'placeholder': 'Выберите тип замыкания'}),
+			'additional_properties': forms.Select(
+				attrs={'class': 'form-control mb-3', 'placeholder': 'Введите дополнительные свойства'}),
+			'max_load': forms.TextInput(
+				attrs={'class': 'form-control mb-3', 'placeholder': 'Введите максимальную нагрузку'}),
+			'color': forms.TextInput(attrs={'class': 'form-control mb-3', 'placeholder': 'Введите цвет'}),
+			'comment': forms.Textarea(
+				attrs={'class': 'form-control mb-3', 'rows': 2, 'placeholder': 'Введите комментарий'}),
 			'photo': forms.ClearableFileInput(attrs={'class': 'form-control'})
-
 		}
 
 	def __init__(self, *args, **kwargs):

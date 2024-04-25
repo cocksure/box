@@ -17,25 +17,30 @@ class Process(models.Model):
 		verbose_name_plural = "Процессы"
 
 
-# class UploadImage(models.Model):
-# 	photo = models.ImageField(
-# 		upload_to='box_photos/',
-# 		default='no-image.png',
-# 		validators=[FileExtensionValidator(allowed_extensions=['jpg', 'jpeg', 'png', 'heic'])],
-# 		verbose_name="Изображение"
-# 	)
-#
-# 	class Meta:
-# 		verbose_name = "Загруженное изображение"
-# 		verbose_name_plural = "Загруженные изображения"
-
-
 class BoxModel(BaseModel):
+	CLOSURE_TYPE_CHOICES = (
+		(1, "Склейка"),
+		(2, "Клапаны"),
+		(3, "Автозамок"),
+		(4, "Скобы"),
+		(5, "Ленты или бандероли"),
+		(6, "Крючки или зажимы"),
+		(7, "Вкладыш"),
+		(8, "Магниты"),
+	)
+	ADDITIONAL_PROPERTIES_CHOICES = (
+		(1, "Влагостойкость"),
+		(2, "Устойчивость к воздействию"),
+		(3, "Экологичность"),
+		(4, "Теплоизоляция"),
+		(5, "Антистатические свойства"),
+	)
+
 	name = models.CharField(max_length=100, unique=True, verbose_name="Название")
 	material = models.ForeignKey(Material, on_delete=models.CASCADE, verbose_name="Материал")
 	photo = models.ImageField(
-		upload_to='box_photos/',
-		default='no-image.png',
+		upload_to='box_photos',
+		default='box_photos/no-image.png',
 		validators=[FileExtensionValidator(allowed_extensions=['jpg', 'jpeg', 'png', 'heic'])],
 		verbose_name="Изображение"
 	)
@@ -43,7 +48,15 @@ class BoxModel(BaseModel):
 								 blank=True, null=True, related_name='box_models_with_size',
 								 verbose_name="Размер коробки")
 	box_type = models.ForeignKey(BoxType, on_delete=models.SET_NULL,
-								 blank=True, null=True, related_name='box_models_with_type', verbose_name="Тип коробки")
+								 blank=True, null=True, related_name='box_models_with_type',
+								 verbose_name="Тип коробки")
+
+	closure_type = models.IntegerField(choices=CLOSURE_TYPE_CHOICES, verbose_name="Тип замыкания", default=None)
+	additional_properties = models.IntegerField(choices=ADDITIONAL_PROPERTIES_CHOICES, default=None,
+												verbose_name="Дополнительные свойства")
+	max_load = models.CharField(max_length=50, blank=True, null=True, verbose_name="Максимальная нагрузка")
+	color = models.CharField(max_length=50, blank=True, null=True, verbose_name="Цвет")
+	comment = models.TextField(blank=True, null=True, verbose_name="Комментарий")
 
 	class Meta:
 		ordering = ['-created_time']
