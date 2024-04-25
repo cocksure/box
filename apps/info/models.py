@@ -1,8 +1,8 @@
+import transliterate
+from django.utils.text import slugify
 from django.db import models
-from transliterate import translit
 
 from apps.shared.models import BaseModel
-from apps.shared.validators import code_name_validate
 from apps.users.models import CustomUser
 
 
@@ -44,6 +44,13 @@ class Material(BaseModel):
 	class Meta:
 		verbose_name = "Материал"
 		verbose_name_plural = "Материалы"
+
+	def save(self, *args, **kwargs):
+		if not self.code:
+			material_group_name = self.material_group.name[:5]
+			transliterated_name = slugify(transliterate.translit(material_group_name, 'ru', reversed=True))
+			self.code = f"{transliterated_name}-{self.material_group_id}"
+		super().save(*args, **kwargs)
 
 
 class Warehouse(BaseModel):

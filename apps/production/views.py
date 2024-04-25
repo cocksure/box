@@ -15,6 +15,8 @@ from django.db.models import Q
 from django.http import JsonResponse, HttpResponseRedirect
 from django.db import transaction
 
+from apps.shared.views import BaseListView
+
 
 class BoxModelListCreate(LoginRequiredMixin, View):
 	def get(self, request):
@@ -76,29 +78,13 @@ class BoxModelEdit(View, LoginRequiredMixin):
 		return render(request, 'production/box_model_edit.html', context)
 
 
-class BoxOrderListView(View):
+class BoxOrderListView(BaseListView):
 	def get(self, request):
-		queryset = BoxOrder.objects.all()
-
-		search_query = request.GET.get('search')
-		if search_query:
-			search_query = search_query.strip()
-			queryset = queryset.filter(id__icontains=search_query)
-
-		status = request.GET.get('status')
-		if status:
-			queryset = queryset.filter(status=status)
-
-		page_size = request.GET.get("page_size", 12)
-		paginator = Paginator(queryset, page_size)
-		page_num = request.GET.get("page", 1)
-		page_obj = paginator.get_page(page_num)
-
+		box_orders = BoxOrder.objects.all().order_by('-created_time')
+		page_obj = self.apply_pagination_and_search(box_orders, request)
 		context = {
 			'box_orders': page_obj,
-			'selected_status': status
 		}
-
 		return render(request, "production/box_order_list.html", context)
 
 
