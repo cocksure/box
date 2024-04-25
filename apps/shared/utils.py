@@ -1,19 +1,24 @@
-from rest_framework.pagination import PageNumberPagination
-from rest_framework.response import Response
 from collections import OrderedDict
+from django.http import JsonResponse
+from django.core.paginator import Paginator
 
 
-class CustomPagination(PageNumberPagination):
-    page_size = 20
-    page_size_query_param = 'page_size'
-    max_page_size = 50
+class CustomPagination:
+	page_size = 20
+	max_page_size = 50
 
-    def get_paginated_response(self, data):
-        return Response(OrderedDict([
-            ('count', self.page.paginator.count),
-            ('current_page', self.page.number),
-            ('total_pages', self.page.paginator.num_pages),
-            ('next', self.get_next_link()),
-            ('previous', self.get_previous_link()),
-            ('results', data)
-        ]))
+	def paginate_queryset(self, queryset, request, view=None):
+		paginator = Paginator(queryset, self.page_size)
+		page_number = request.query_params.get('page')
+		paginated_queryset = paginator.get_page(page_number)
+		return paginated_queryset
+
+	def get_paginated_response(self, paginated_queryset):
+		return JsonResponse(OrderedDict([
+			('count', paginated_queryset.paginator.count),
+			('current_page', paginated_queryset.number),
+			('total_pages', paginated_queryset.paginator.num_pages),
+			('next', paginated_queryset.next_page_number() if paginated_queryset.has_next() else None),
+			('previous', paginated_queryset.previous_page_number() if paginated_queryset.has_previous() else None),
+			('results', list(paginated_queryset))
+		]))

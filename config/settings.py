@@ -10,7 +10,7 @@ environ.Env.read_env(os.path.join(BASE_DIR, './.env'))
 SECRET_KEY = env('SECRET_KEY')
 DEBUG = env('DEBUG', default=False)
 
-ALLOWED_HOSTS = ['boxproduction.vercel.app', 'boxproduction.pythonanywhere.com', '127.0.0.1']
+ALLOWED_HOSTS = ['boxp.pythonanywhere.com', '127.0.0.1']
 
 INSTALLED_APPS = [
 	'django.contrib.sites',
@@ -23,16 +23,10 @@ INSTALLED_APPS = [
 
 	# packages
 	'import_export',
-	'rest_framework',
 	'django_filters',
-	'rest_framework.authtoken',
 	'allauth',
 	'allauth.account',
-	'drf_yasg',
-	'dj_rest_auth',
 	'allauth.socialaccount',
-	'corsheaders',
-	'dj_rest_auth.registration',
 
 	# local apps
 	'apps.users',
@@ -53,43 +47,12 @@ SWAGGER_SETTINGS = {
 	},
 }
 
-REST_FRAMEWORK = {
-	'DEFAULT_PERMISSION_CLASSES': [
-		'rest_framework.permissions.AllowAny',
-	],
-
-	'DEFAULT_AUTHENTICATION_CLASSES': [
-		'rest_framework.authentication.SessionAuthentication',
-		'rest_framework.authentication.TokenAuthentication',
-	],
-	'DEFAULT_FILTER_BACKENDS': [
-		'django_filters.rest_framework.DjangoFilterBackend',
-		'rest_framework.filters.SearchFilter',
-		'rest_framework.filters.OrderingFilter',
-	],
-	'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.AutoSchema',
-
-	'DEFAULT_PAGINATION_CLASS': 'apps.shared.utils.CustomPagination',
-	'PAGE_SIZE': 20,
-
-}
-
-CORS_ALLOW_ALL_ORIGINS = True
-CORS_ALLOWED_ORIGINS = [
-	'http://localhost:3000',
-	'http://localhost:8000',
-	'http://0.0.0.0:8030',
-	'https://boxproduction.pythonanywhere.com',
-	'https://boxproduction.vercel.app'
-]
-
 AUTHENTICATION_BACKENDS = [
 	'django.contrib.auth.backends.ModelBackend',
 ]
 AUTH_USER_MODEL = 'users.CustomUser'
 
 MIDDLEWARE = [
-	'corsheaders.middleware.CorsMiddleware',
 	'django.middleware.security.SecurityMiddleware',
 	'django.contrib.sessions.middleware.SessionMiddleware',
 	'django.middleware.locale.LocaleMiddleware',
