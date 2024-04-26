@@ -25,14 +25,14 @@ class BoxModelForm(forms.ModelForm):
 			'box_size': forms.Select(attrs={'class': 'form-select mb-3', 'placeholder': 'Выберите размер'}),
 			'box_type': forms.Select(attrs={'class': 'form-select mb-4', 'placeholder': 'Выберите тип коробки'}),
 			'closure_type': forms.Select(attrs={'class': 'form-select mb-3', 'placeholder': 'Выберите тип замыкания'}),
-			'additional_properties': forms.Select(
+			'additional_properties': forms.TextInput(
 				attrs={'class': 'form-control mb-3', 'placeholder': 'Введите дополнительные свойства'}),
 			'max_load': forms.TextInput(
 				attrs={'class': 'form-control mb-3', 'placeholder': 'Введите максимальную нагрузку'}),
 			'color': forms.TextInput(attrs={'class': 'form-control mb-3', 'placeholder': 'Введите цвет'}),
 			'comment': forms.Textarea(
-				attrs={'class': 'form-control mb-3', 'rows': 2, 'placeholder': 'Введите комментарий'}),
-			'photo': forms.ClearableFileInput(attrs={'class': 'form-control'})
+				attrs={'class': 'form-control mb-3', 'rows': 3, 'placeholder': 'Введите комментарий'}),
+			'photo': forms.ClearableFileInput(attrs={'class': 'form-control', 'id': 'photo', 'name': 'photo'})
 		}
 
 	def __init__(self, *args, **kwargs):

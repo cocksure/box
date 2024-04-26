@@ -6,7 +6,7 @@
     <div class="container-fluid pt-4 px-4">
         <div class="row g-4">
             <div class="col-sm-12">
-                <div class="bg-light rounded h-100 p-4">
+                <div class="bg-light rounded p-4">
                     <h6 class="mb-4">Модели коробок</h6>
                     <hr>
 
@@ -53,9 +53,6 @@
                                                     {{ form.box_size }}
                                                     {{ form.box_type.label_tag }}
                                                     {{ form.box_type }}
-
-
-                                                    {{ form.color.label_tag }}
                                                     {{ form.color }}
                                                     {{ form.comment }}
                                                 </div>
@@ -70,9 +67,7 @@
                                             </div>
                                             <div class="mt-3">
                                                 {{ form.photo }}
-                                                {{ form.closure_type.label_tag }}
                                                 {{ form.closure_type }}
-                                                {{ form.additional_properties.label_tag }}
                                                 {{ form.additional_properties }}
                                                 {{ form.max_load }}
                                             </div>
@@ -161,7 +156,6 @@
             </div>
         </div>
     </div>
-    </div>
     <!-- Table End -->
 
     {% block dashboard %}
@@ -176,6 +170,7 @@
                 if (file) {
                     const reader = new FileReader();
                     reader.onload = function (e) {
+                        const img = document.createElement('img');
                         img.src = e.target.result;
                         img.classList.add('img-thumbnail');
                         img.style.maxWidth = '100%';
@@ -193,7 +188,6 @@
                     $('#name').val('Значение по умолчанию');
                     preview.innerHTML = '';
                 });
-
                 $('#openModalBtn').click(function () {
                     $('#myModal').modal('show');
                 });
