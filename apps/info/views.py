@@ -1,6 +1,5 @@
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.utils import timezone
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views import View
 
@@ -8,187 +7,77 @@ from apps.info.forms import MaterialTypeForm, WarehouseForm, MaterialForm, FirmF
 	BoxTypesForm, MaterialSpecialGroupForm, BrandForm, MaterialGroupForm
 from apps.info.models import MaterialType, Material, Warehouse, Firm, Specification, BoxSize, BoxType, \
 	MaterialSpecialGroup, Brand, MaterialGroup
-from apps.shared.views import BaseListView
+from apps.shared.views import BaseListCreateView
 
 
-class MaterialTypeListCreate(BaseListView):
-	def get(self, request):
-		material_types = MaterialType.objects.all()
-		page_obj = self.apply_pagination_and_search(material_types, request)
-
-		context = {
-			'material_types': page_obj,
-			'form': MaterialTypeForm(),
-		}
-		return render(request, "info/material_type_list.html", context)
-
-	def post(self, request):
-		form = MaterialTypeForm(request.POST)
-		if form.is_valid():
-			material_type = form.save(commit=False)
-			material_type.save()
-			return redirect('info:material_type-list')
-		context = {
-			'material_types': MaterialType.objects.all(),
-			'form': form,
-
-		}
-		return render(request, "info/material_type_list.html", context)
+class MaterialTypeListCreate(BaseListCreateView):
+	model = MaterialType
+	form_class = MaterialTypeForm
+	template_name = "info/material_type_list.html"
+	redirect_url = "info:material_type-list"
 
 
-class MaterialListCreate(BaseListView):
-	def get(self, request):
-		materials = Material.objects.all().order_by('-created_time')
-		page_obj = self.apply_pagination_and_search(materials, request)
-
-		context = {
-			'materials': page_obj,
-			'form': MaterialForm(),
-		}
-		return render(request, "info/material_list.html", context)
-
-	def post(self, request):
-		form = MaterialForm(request.POST)
-		if form.is_valid():
-			material = form.save(commit=False)
-			material.created_by = request.user
-			material.created_time = timezone.now()
-			material.save()
-			return redirect('info:material-list')
-		context = {
-			'materials': Material.objects.all().order_by('-created_time'),
-			'form': form,
-
-		}
-		return render(request, "info/material_list.html", context)
+class MaterialListCreate(BaseListCreateView):
+	model = Material
+	form_class = MaterialForm
+	template_name = "info/material_list.html"
+	redirect_url = "info:material-list"
 
 
-class WarehouseListCreate(BaseListView):
-	def get(self, request):
-		warehouses = Warehouse.objects.all().order_by('-created_time')
-		page_obj = self.apply_pagination_and_search(warehouses, request)
-
-		context = {
-			'warehouses': page_obj,
-			'form': WarehouseForm(),
-		}
-		return render(request, "info/warehouse_list.html", context)
-
-	def post(self, request):
-		form = WarehouseForm(request.POST)
-		if form.is_valid():
-			warehouse = form.save(commit=False)
-			warehouse.created_by = request.user
-			warehouse.created_time = timezone.now()
-			warehouse.save()
-			return redirect('info:warehouse-list')
-		context = {
-			'warehouses': Warehouse.objects.all().order_by('-created_time'),
-			'form': form,
-		}
-		return render(request, "info/warehouse_list.html", context)
+class WarehouseListCreate(BaseListCreateView):
+	model = Warehouse
+	form_class = WarehouseForm
+	template_name = "info/warehouse_list.html"
+	redirect_url = "info:warehouse-list"
 
 
-class FirmListCreate(BaseListView):
-	def get(self, request):
-		firms = Firm.objects.all().order_by('-created_time')
-		page_obj = self.apply_pagination_and_search(firms, request)
-
-		context = {
-			'firms': page_obj,
-			'form': FirmForm(),
-		}
-		return render(request, "info/firm_list.html", context)
-
-	def post(self, request):
-		form = FirmForm(request.POST)
-		if form.is_valid():
-			firm = form.save(commit=False)
-			firm.created_by = request.user
-			firm.created_time = timezone.now()
-			firm.save()
-			return redirect('info:firm-list')
-		context = {
-			'firms': Firm.objects.all().order_by('-created_time'),
-			'form': form,
-
-		}
-		return render(request, "info/firm_list.html", context)
+class FirmListCreate(BaseListCreateView):
+	model = Firm
+	form_class = FirmForm
+	template_name = "info/firm_list.html"
+	redirect_url = "info:firm-list"
 
 
-class SpecificationListCreate(BaseListView):
-	def get(self, request):
-		specifications = Specification.objects.all().order_by('-created_time')
-		page_obj = self.apply_pagination_and_search(specifications, request)
-
-		context = {
-			'specifications': page_obj,
-			'form': SpecificationForm(),
-		}
-		return render(request, "info/specification_list.html", context)
-
-	def post(self, request):
-		form = SpecificationForm(request.POST)
-		if form.is_valid():
-			specification = form.save(commit=False)
-			specification.created_by = request.user
-			specification.created_time = timezone.now()
-			specification.save()
-			return redirect('info:specification-list')
-		context = {
-			'specifications': Specification.objects.all().order_by('-created_time'),
-			'form': form,
-
-		}
-		return render(request, "info/specification_list.html", context)
+class SpecificationListCreate(BaseListCreateView):
+	model = Specification
+	form_class = SpecificationForm
+	template_name = "info/specification_list.html"
+	redirect_url = "info:specification-list"
 
 
-class BoxSizeListCreate(BaseListView):
-	def get(self, request):
-		box_sizes = BoxSize.objects.all()
-		page_obj = self.apply_pagination_and_search(box_sizes, request)
-
-		context = {
-			'box_sizes': page_obj,
-			'form': BoxSizesForm(),
-		}
-		return render(request, "info/box_size_list.html", context)
-
-	def post(self, request):
-		form = BoxSizesForm(request.POST)
-		if form.is_valid():
-			form.save()
-			return redirect('info:box_size-list')
-		box_sizes = BoxSize.objects.all()
-		context = {
-			'box_sizes': box_sizes,
-			'form': form,
-		}
-		return render(request, "info/box_size_list.html", context)
+class BoxSizeListCreate(BaseListCreateView):
+	model = BoxSize
+	form_class = BoxSizesForm
+	template_name = "info/box_size_list.html"
+	redirect_url = "info:box_size-list"
 
 
-class BoxTypeListCreate(BaseListView):
-	def get(self, request):
-		box_types = BoxType.objects.all()
-		page_obj = self.apply_pagination_and_search(box_types, request)
+class BoxTypeListCreate(BaseListCreateView):
+	model = BoxType
+	form_class = BoxTypesForm
+	template_name = "info/box_type_list.html"
+	redirect_url = "info:box_type-list"
 
-		context = {
-			'box_types': page_obj,
-			'form': BoxTypesForm(),
-		}
-		return render(request, "info/box_type_list.html", context)
 
-	def post(self, request):
-		form = BoxTypesForm(request.POST)
-		if form.is_valid():
-			box_type = form.save(commit=False)
-			box_type.save()
-			return redirect('info:box_type-list')
-		context = {
-			'box_types': BoxSize.objects.all(),
-			'form': form,
-		}
-		return render(request, "info/box_type_list.html", context)
+class MaterialGroupListCreate(BaseListCreateView):
+	model = MaterialGroup
+	form_class = MaterialGroupForm
+	template_name = "info/material_group_list.html"
+	redirect_url = "info:material-group-list"
+
+
+class MaterialSpecialGroupListCreate(BaseListCreateView):
+	model = MaterialSpecialGroup
+	form_class = MaterialSpecialGroupForm
+	template_name = "info/material_special_group_list.html"
+	redirect_url = "info:special-group-list"
+
+
+class BrandListCreate(BaseListCreateView):
+	model = Brand
+	form_class = BrandForm
+	template_name = "info/brand_list.html"
+	redirect_url = "info:brand-list"
 
 
 class MaterialEditView(View, LoginRequiredMixin):
@@ -208,72 +97,3 @@ class MaterialEditView(View, LoginRequiredMixin):
 			messages.error(request, 'Please correct the errors below.')
 		context = {'form': form, 'material': material}
 		return render(request, 'info/material_edit.html', context)
-
-
-class MaterialGroupListCreate(View):
-	def get(self, request):
-		material_groups = MaterialGroup.objects.all()
-		context = {
-			'material_groups': material_groups,
-			'form': MaterialGroupForm(),
-		}
-		return render(request, "info/material_group_list.html", context)
-
-	def post(self, request):
-		form = MaterialGroupForm(request.POST)
-		if form.is_valid():
-			form.save()
-			return redirect('info:material-group-list')
-		else:
-			material_groups = MaterialGroup.objects.all()
-			context = {
-				'material_groups': material_groups,
-				'form': form,
-			}
-			return render(request, "info/material_group_list.html", context)
-
-
-class MaterialSpecialGroupListCreate(View):
-	def get(self, request):
-		material_special_groups = MaterialSpecialGroup.objects.all()
-		context = {
-			'material_special_groups': material_special_groups,
-			'form': MaterialSpecialGroupForm(),
-		}
-		return render(request, "info/material_special_group_list.html", context)
-
-	def post(self, request):
-		form = MaterialSpecialGroupForm(request.POST)
-		if form.is_valid():
-			form.save()
-			return redirect('info:special-group-list')
-		else:
-			material_special_groups = MaterialSpecialGroup.objects.all()
-			context = {
-				'material_special_groups': material_special_groups,
-				'form': form,
-			}
-			return render(request, "info/material_special_group_list.html", context)
-
-
-class BrandListCreate(View):
-	def get(self, request):
-		brands = Brand.objects.all()
-		context = {
-			'brands': brands,
-			'form': BrandForm(),
-		}
-		return render(request, "info/brand_list.html", context)
-
-	def post(self, request):
-		form = BrandForm(request.POST)
-		if form.is_valid():
-			form.save()
-			return redirect('info:brand-list')
-		else:
-			brands = Brand.objects.all()
-			context = {
-				'brands': brands,
-				'form': form,
-			}
-			return render(request, "info/brand_list.html", context)

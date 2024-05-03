@@ -201,7 +201,7 @@
                     formData.append(material.name, material.value);
                 });
 
-                fetch('{% url "box-order-create" %}', {
+                fetch('{% url "production:box-order-create" %}', {
                     method: 'POST',
                     body: formData,
                     headers: {

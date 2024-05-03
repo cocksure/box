@@ -28,7 +28,7 @@
 
     <!-- Icon Font Stylesheet -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="" rel="stylesheet">
 
     <!-- Libraries Stylesheet -->
     <link href="{% static 'lib/owlcarousel/assets/owl.carousel.min.css' %}" rel="stylesheet">
@@ -76,27 +76,28 @@
                 <h3 class="text-primary"><i class="fa fa-box-open me-2"></i>Korobka</h3>
             </a>
             <div class="navbar-nav w-100">
-            
+
                 <!-- Произдовства -->
                 <div class="nav-item dropdown {% if 'production/' in request.path %}active{% endif %}">
                     <a href="#" class="nav-link dropdown-toggle "
                        data-bs-toggle="dropdown"><i
                             class="fa fa-laptop me-2"></i>Произдовства</a>
                     <div class="dropdown-menu bg-transparent border-0">
-                        <a href="{% url 'box-model-list' %}" class="dropdown-item">Модели</a>
-                        <a href="{% url 'box-order-list' %}" class="dropdown-item">Заказы</a>
+                        <a href="{% url 'production:box-model-list' %}" class="dropdown-item">Модели</a>
+                        <a href="{% url 'production:box-order-list' %}" class="dropdown-item">Заказы</a>
                         <a href="" class="dropdown-item">Заказы на производства</a>
                     </div>
                 </div>
-            
+
                 <!-- Склад -->
                 <div class="nav-item dropdown {% if 'depo/' in request.path %}active{% endif %}">
                     <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown"><i
                             class="fa fa-th me-2"></i>Склад</a>
                     <div class="dropdown-menu bg-transparent border-0">
-                        <a href="" class="dropdown-item">Остаток</a></a>
+                        <a href="{% url 'depo:stock-list' %}" class="dropdown-item">Остаток</a></a>
                         <a href="{% url 'depo:incoming-list' %}" class="dropdown-item">Приходы</a>
                         <a href="{% url 'depo:outgoing-list' %}" class="dropdown-item">Расходы</a>
+                        <a href="{% url 'depo:unaccepted-list' %}" class="dropdown-item">Не принятии товары</a>
                     </div>
                 </div>
 
@@ -256,10 +257,10 @@
 </div>
 
 <!-- JavaScript Libraries -->
-{#<script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>#}
+<script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
 <script src="{% static 'lib/chart/chart.min.js' %}"></script>
 <script src="{% static 'lib/easing/easing.min.js' %}"></script>
 <script src="{% static 'lib/waypoints/waypoints.min.js' %}"></script>

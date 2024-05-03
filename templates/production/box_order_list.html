@@ -14,7 +14,7 @@
                             <h6 class="">Заказы</h6>
                         </div>
                         <div class="col-md-6 d-flex justify-content-end mb-3">
-                            <a href="{% url 'box-order-create' %}" class="btn btn-primary">Создать</a>
+                            <a href="{% url 'production:box-order-create' %}" class="btn btn-primary">Создать</a>
                         </div>
                         <hr>
                     </div>
@@ -30,7 +30,7 @@
                             </form>
                         </div>
                         <div class="col-md-6 text-end">
-                            <form id="status-form" method="GET" action="{% url 'box-order-list' %}">
+                            <form id="status-form" method="GET" action="{% url 'production:box-order-list' %}">
                                 <select id="status-filter" name="status" class="form-select">
                                     <option value="all" {% if selected_status == 'all' %} selected {% endif %}>Все
                                     </option>

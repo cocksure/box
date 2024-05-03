@@ -1,0 +1,29 @@
+<div class="modal fade" id="myModalCreate" tabindex="-1" role="dialog" aria-labelledby="myModalLabelCreate">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="myModalLabelCreate">Создание</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="myModalCreateForm" method="post" action="">
+                    {% csrf_token %}
+                    {{ form.as_p }}
+                    <button type="submit" class="btn btn-primary">Создать</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+        $('#myModalCreate').on('show.bs.modal', function (event) {
+            let button = $(event.relatedTarget);
+            let actionUrl = button.data('action-url');
+            let modal = $(this);
+
+            modal.find('#myModalCreateForm').attr('action', actionUrl);
+        });
+    });
+</script>

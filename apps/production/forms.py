@@ -20,19 +20,18 @@ class BoxModelForm(forms.ModelForm):
 			'comment': 'Комментарий',
 		}
 		widgets = {
-			'name': forms.TextInput(attrs={'class': 'form-control mb-3 mt-3', 'placeholder': 'Введите название'}),
+			'name': forms.TextInput(attrs={'class': 'form-control mt-3 mb-2', 'placeholder': 'Введите название'}),
 			'material': forms.Select(attrs={'class': 'form-select mb-3', 'placeholder': 'Выберите материал'}),
 			'box_size': forms.Select(attrs={'class': 'form-select mb-3', 'placeholder': 'Выберите размер'}),
-			'box_type': forms.Select(attrs={'class': 'form-select mb-4', 'placeholder': 'Выберите тип коробки'}),
-			'closure_type': forms.Select(attrs={'class': 'form-select mb-3', 'placeholder': 'Выберите тип замыкания'}),
-			'additional_properties': forms.TextInput(
-				attrs={'class': 'form-control mb-3', 'placeholder': 'Введите дополнительные свойства'}),
-			'max_load': forms.TextInput(
-				attrs={'class': 'form-control mb-3', 'placeholder': 'Введите максимальную нагрузку'}),
+			'box_type': forms.Select(attrs={'class': 'form-select mb-3', 'placeholder': 'Выберите тип коробки'}),
+			'closure_type': forms.Select(attrs={'class': 'form-select mb-2', }),
+			'additional_properties': forms.Select(attrs={'class': 'form-control mb-2', }),
+			'max_load': forms.NumberInput(
+				attrs={'class': 'form-control mb-2', 'placeholder': 'Введите максимальную нагрузку'}),
 			'color': forms.TextInput(attrs={'class': 'form-control mb-3', 'placeholder': 'Введите цвет'}),
 			'comment': forms.Textarea(
-				attrs={'class': 'form-control mb-3', 'rows': 3, 'placeholder': 'Введите комментарий'}),
-			'photo': forms.ClearableFileInput(attrs={'class': 'form-control', 'id': 'photo', 'name': 'photo'})
+				attrs={'class': 'form-control mb-2', 'rows': 5, 'placeholder': 'Введите комментарий'}),
+			'photo': forms.ClearableFileInput(attrs={'class': 'form-control mb-3', 'id': 'photo', 'name': 'photo'})
 		}
 
 	def __init__(self, *args, **kwargs):

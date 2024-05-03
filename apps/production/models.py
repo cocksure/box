@@ -51,8 +51,9 @@ class BoxModel(BaseModel):
 								 blank=True, null=True, related_name='box_models_with_type',
 								 verbose_name="Тип коробки")
 
-	closure_type = models.IntegerField(choices=CLOSURE_TYPE_CHOICES, verbose_name="Тип замыкания", default=None)
-	additional_properties = models.IntegerField(choices=ADDITIONAL_PROPERTIES_CHOICES, default=None,
+	closure_type = models.IntegerField(choices=CLOSURE_TYPE_CHOICES, verbose_name="Тип замыкания", blank=True,
+									   null=True)
+	additional_properties = models.IntegerField(choices=ADDITIONAL_PROPERTIES_CHOICES, blank=True, null=True,
 												verbose_name="Дополнительные свойства")
 	max_load = models.CharField(max_length=50, blank=True, null=True, verbose_name="Максимальная нагрузка")
 	color = models.CharField(max_length=50, blank=True, null=True, verbose_name="Цвет")

@@ -46,6 +46,9 @@ class Outgoing(BaseModel):
 				self.code = f'WA{str(new_id).zfill(6)}'
 			else:
 				self.code = 'WA000001'
+
+		if self.outgoing_type in [self.OutgoingType.OUTGO, self.OutgoingType.SALE]:
+			self.status = self.OutgoingStatus.ACCEPT
 		super().save(*args, **kwargs)
 
 	def clean(self):

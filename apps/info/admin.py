@@ -22,7 +22,7 @@ class MaterialAdmin(ImportExportModelAdmin, admin.ModelAdmin):
 	date_hierarchy = 'created_time'
 	readonly_fields = ('created_time', 'updated_time')
 	fields = ('code', 'name', 'material_group', 'special_group', 'brand', 'material_type', 'material_thickness',
-			  'unit_of_measurement')
+			  'unit_of_measurement', 'photo')
 	list_per_page = 100
 
 	resource_class = MaterialResource
@@ -102,5 +102,11 @@ class MaterialGroupAdmin(admin.ModelAdmin):
 
 @admin.register(Brand)
 class BrandAdmin(admin.ModelAdmin):
+	list_display = ('name',)
+	list_per_page = 100
+
+
+@admin.register(BoxType)
+class BoxTypeAdmin(admin.ModelAdmin):
 	list_display = ('name',)
 	list_per_page = 100

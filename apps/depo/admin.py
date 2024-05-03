@@ -56,9 +56,6 @@ class StockAdmin(admin.ModelAdmin):
 	list_filter = ('warehouse',)
 	list_per_page = 100
 
-	def has_delete_permission(self, request, obj=None):
-		return False
-
 	@staticmethod
 	def material_name(obj):
 		return obj.material.name if obj.material else ''

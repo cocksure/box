@@ -22,13 +22,40 @@ class ProcessAdmin(admin.ModelAdmin):
 	list_display = ('name',)
 
 
+from django.contrib import admin
+from .models import BoxModel
+
+
 @admin.register(BoxModel)
 class BoxModelAdmin(admin.ModelAdmin):
-	list_display = ('name', 'material', 'box_size', 'box_type', 'photo')
-	fields = (
-		'name', 'material', 'box_size', 'box_type', 'photo', 'created_by', "updated_by", 'created_time',)
+	list_display = (
+		'name', 'material', 'box_size', 'box_type', 'photo', 'closure_type', 'additional_properties', 'max_load',
+		'color',
+		'comment', 'created_by', 'updated_by', 'created_time')
 	search_fields = ('name',)
 	list_filter = ('box_type',)
+
+	fieldsets = (
+		(None, {
+			'fields': (
+				'name', 'material', 'box_size', 'box_type', 'photo', 'closure_type', 'additional_properties',
+				'max_load',
+				'color', 'comment')
+		}),
+		('Audit Information', {
+			'fields': ('created_by', 'updated_by', 'created_time'),
+			'classes': ('collapse',)  # Collapsed by default
+		}),
+	)
+
+	readonly_fields = ('created_by', 'updated_by', 'created_time')
+
+	def save_model(self, request, obj, form, change):
+		if not obj.pk:  # New object
+			obj.created_by = request.user
+		else:  # Existing object
+			obj.updated_by = request.user
+		super().save_model(request, obj, form, change)
 
 
 @admin.register(BoxOrder)

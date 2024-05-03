@@ -18,7 +18,7 @@ class Incoming(BaseModel):
 	]
 
 	data = models.DateField(verbose_name="Дата")
-	warehouse = models.ForeignKey(Warehouse, on_delete=models.PROTECT, related_name='incoming_warehouse',
+	warehouse = models.ForeignKey(Warehouse, on_delete=models.PROTECT, related_name='incoming_warehouse', null=True,
 								  verbose_name="Склад")
 	from_warehouse = models.ForeignKey(Warehouse, on_delete=models.CASCADE, null=True, blank=True,
 									   related_name='incoming_from_warehouse', verbose_name="От склада")

@@ -1,5 +1,6 @@
 import uuid
 import transliterate
+from django.core.validators import FileExtensionValidator
 from django.utils.text import slugify
 from django.db import models
 
@@ -7,7 +8,7 @@ from apps.shared.models import BaseModel
 from apps.users.models import CustomUser
 
 
-class MaterialType(models.Model):
+class MaterialType(BaseModel):
 	name = models.CharField(max_length=100, verbose_name="Название")
 
 	def __str__(self):
@@ -38,6 +39,12 @@ class Material(BaseModel):
 	material_thickness = models.FloatField(verbose_name="Толщина материала")
 	unit_of_measurement = models.CharField(max_length=10, choices=UNIT_CHOICES, default=None,
 										   verbose_name="Единица измерения")
+	photo = models.ImageField(
+		upload_to='box_photos',
+		default='box_photos/no-image.png',
+		validators=[FileExtensionValidator(allowed_extensions=['jpg', 'jpeg', 'png', 'heic'])],
+		verbose_name="Изображение"
+	)
 
 	def __str__(self):
 		return self.name
@@ -116,7 +123,7 @@ class Specification(BaseModel):
 		verbose_name_plural = "Спецификации"
 
 
-class BoxSize(models.Model):
+class BoxSize(BaseModel):
 	name = models.CharField(max_length=100, verbose_name="Название")
 
 	width = models.PositiveIntegerField(verbose_name="Ширина")
@@ -135,7 +142,7 @@ class BoxSize(models.Model):
 		verbose_name_plural = "Размеры коробок"
 
 
-class BoxType(models.Model):
+class BoxType(BaseModel):
 	name = models.CharField(max_length=100, verbose_name="Название")
 
 	def __str__(self):
@@ -146,7 +153,7 @@ class BoxType(models.Model):
 		verbose_name_plural = "Типы коробок"
 
 
-class MaterialGroup(models.Model):
+class MaterialGroup(BaseModel):
 	name = models.CharField(max_length=100, verbose_name="Название")
 
 	def __str__(self):
@@ -157,7 +164,7 @@ class MaterialGroup(models.Model):
 		verbose_name_plural = "Группы материалов"
 
 
-class MaterialSpecialGroup(models.Model):
+class MaterialSpecialGroup(BaseModel):
 	name = models.CharField(max_length=100, verbose_name="Название")
 
 	def __str__(self):
@@ -168,7 +175,7 @@ class MaterialSpecialGroup(models.Model):
 		verbose_name_plural = "Специальные группы материалов"
 
 
-class Brand(models.Model):
+class Brand(BaseModel):
 	name = models.CharField(max_length=100, verbose_name="Название")
 
 	def __str__(self):

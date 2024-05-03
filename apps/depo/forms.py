@@ -52,7 +52,7 @@ class OutgoingForm(forms.ModelForm):
 		widgets = {
 			'outgoing_type': forms.Select(attrs={'class': 'form-control'}),
 			'data': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
-			'warehouse': forms.Select(attrs={'class': 'form-control'}),
+			'warehouse': forms.Select(attrs={'class': 'form-control', 'name': 'warehouse'}),
 			'to_warehouse': forms.Select(attrs={'class': 'form-control'}),
 			'note': forms.Textarea(attrs={'class': 'form-control', 'rows': 1}),
 		}

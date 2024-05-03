@@ -1,6 +1,5 @@
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.core.paginator import Paginator
 from django.shortcuts import render, redirect
 from django.shortcuts import get_object_or_404
 from django.urls import reverse_lazy
@@ -8,57 +7,22 @@ from django.utils import timezone
 from django.views import View
 from django.views.generic import CreateView, DetailView
 
-from apps.info.models import Material, BoxSize, BoxType
 from apps.production.forms import BoxModelForm, BoxOrderForm, BoxOrderDetailFormSet
 from apps.production.models import BoxModel, BoxOrder, BoxOrderDetail
-from django.db.models import Q
 from django.http import JsonResponse, HttpResponseRedirect
 from django.db import transaction
 
-from apps.shared.views import BaseListView
+from apps.shared.views import BaseListCreateView
 
 
-class BoxModelListCreate(LoginRequiredMixin, View):
-	def get(self, request):
-		box_models = BoxModel.objects.all().order_by('-created_time')
-
-		search_query = request.GET.get('search')
-		if search_query:
-			search_query = search_query.strip()
-			box_models = box_models.filter(Q(name__icontains=search_query))
-
-		page_size = request.GET.get("page_size", 12)
-		paginator = Paginator(box_models, page_size)
-		page_num = request.GET.get("page", 1)
-		page_obj = paginator.get_page(page_num)
-		context = {
-			'box_models': page_obj,
-			'form': BoxModelForm(),
-			'materials': Material.objects.all(),
-			'box_sizes': BoxSize.objects.all(),
-			'box_types': BoxType.objects.all(),
-		}
-		return render(request, "production/box_model_list.html", context)
-
-	def post(self, request):
-		form = BoxModelForm(request.POST, request.FILES)
-		if form.is_valid():
-			boxmodel = form.save(commit=False)
-			boxmodel.created_by = request.user
-			boxmodel.created_time = timezone.now()
-			boxmodel.save()
-			return redirect('box-model-list')
-		context = {
-			'boxmodels': BoxModel.objects.all().order_by('-created_time'),
-			'form': form,
-			'materials': Material.objects.all(),
-			'box_sizes': BoxSize.objects.all(),
-			'box_types': BoxType.objects.all(),
-		}
-		return render(request, "production/box_model_list.html", context)
+class BoxModelListCreate(BaseListCreateView):
+	model = BoxModel
+	form_class = BoxModelForm
+	template_name = "production/box_model_list.html"
+	redirect_url = "production:box-model-list"
 
 
-class BoxModelEdit(View, LoginRequiredMixin):
+class BoxModelEditView(View, LoginRequiredMixin):
 	def get(self, request, pk):
 		boxmodel = get_object_or_404(BoxModel, pk=pk)
 		form = BoxModelForm(instance=boxmodel)
@@ -78,7 +42,7 @@ class BoxModelEdit(View, LoginRequiredMixin):
 		return render(request, 'production/box_model_edit.html', context)
 
 
-class BoxOrderListView(BaseListView):
+class BoxOrderListView(BaseListCreateView):
 	def get(self, request):
 		box_orders = BoxOrder.objects.all().order_by('-created_time')
 		page_obj = self.apply_pagination_and_search(box_orders, request)
@@ -122,7 +86,7 @@ class BoxOrderCreate(CreateView):
 			return JsonResponse({'error': str(e)}, status=400)
 		else:
 
-			return HttpResponseRedirect(reverse_lazy('box-order-list'))
+			return HttpResponseRedirect(reverse_lazy('production:box-order-list'))
 
 	def form_invalid(self, form):
 		return JsonResponse({'success': False, 'errors': form.errors}, status=400)

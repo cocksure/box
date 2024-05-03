@@ -10,40 +10,96 @@
             justify-content: center;
             align-items: center;
         }
+
         .forma {
             height: 750px;
         }
     </style>
-    
+
     <div class="container-fluid pt-4 px-4">
         <div class="row g-4">
-            <div class="col-md-6 forma">
+            <div class="col-md-12 forma">
                 <div class="bg-light rounded h-100 p-4">
                     <h6 class="mb-4">Модели коробок</h6>
                     <hr>
-                    <form class="form_login" method="post">
+                    <form method="post" action="{% url 'production:box-model-edit' boxmodel.id %}"
+                          enctype="multipart/form-data">
+
                         {% csrf_token %}
-                        {{ form.as_p }}
-                        <button type="submit" class="btn btn-primary form-btn btn-shadow w-100"
-                                style="width: 100%; border-radius: 5px">
-                            Save Changes
-                        </button>
+                        <div class="row">
+                            <div class="col-md-7 col-lg-7">
+                                <div class="mb-3">
+                                    {{ form.name }}
+                                    {{ form.material.label_tag }}
+                                    {{ form.material }}
+                                    {{ form.box_size.label_tag }}
+                                    {{ form.box_size }}
+                                    {{ form.box_type.label_tag }}
+                                    {{ form.box_type }}
+                                    {{ form.color }}
+                                    {{ form.closure_type.label_tag }}
+                                    {{ form.closure_type }}
+                                    {{ form.additional_properties.label_tag }}
+                                    {{ form.additional_properties }}
+                                    {{ form.max_load }}
+                                </div>
+                                <button type="submit" class="btn btn-primary w-80">Изменить</button>
+                            </div>
+                            <div class="col-md-5 col-lg-5">
+                                <div id="image-preview">
+                                    <img src="{{ box_model.photo.url }}" alt="Изображение"
+                                         class="img-thumbnail h-100 mt-3"
+                                         style="max-width: 100%; max-height: 400px;">
+                                </div>
+                                <div class="mt-3">
+                                    {{ form.photo }}
+                                    {{ form.additional_properties.label_tag }}
+                                    {{ form.additional_properties }}
+                                    {{ form.comment }}
+                                </div>
+                            </div>
+                        </div>
                     </form>
+
                 </div>
             </div>
-            <div class="col-md-6 center-images">
-                {% if photos %}
-                    {% for photo in photos %}
-                        <img src="{{ photo.photo.url }}" alt="Box Photo" class="img-fluid">
-                    {% endfor %}
-                {% else %}
-                    <p>No photo available</p>
-                {% endif %}
-            </div>
+
         </div>
     </div>
-
     {% block dashboard %}
     {% endblock %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const input = document.querySelector('input[type="file"]');
+            const preview = document.getElementById('image-preview');
 
+            input.addEventListener('change', function () {
+                const file = this.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function (e) {
+                        const img = document.createElement('img');
+                        img.src = e.target.result;
+                        img.classList.add('img-thumbnail');
+                        img.style.maxWidth = '80%';
+                        img.style.maxHeight = '400px';
+                        preview.innerHTML = '';
+                        preview.appendChild(img);
+                    }
+                    reader.readAsDataURL(file);
+                }
+            });
+
+            $(document).ready(function () {
+                $('#myModal').on('show.bs.modal', function () {
+                    $('#myModalCreateForm')[0].reset();
+                    $('#name').val('Значение по умолчанию');
+                    preview.innerHTML = '';
+                });
+                $('#openModalBtn').click(function () {
+                    $('#myModal').modal('show');
+                });
+            });
+        });
+    </script>
 {% endblock %}

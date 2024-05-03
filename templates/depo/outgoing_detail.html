@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %} Создать расход {% endblock title %}
+
+{% block content %}
+    <div class="container-fluid pt-4 px-4">
+        <div class=" g-4">
+            <div class="col-sm-12">
+                <div class="row bg-light rounded mb-3 p-2">
+                    {% if outgoing.status == 'В ожидании' %}
+                        <div class="col-md-6">
+                            <form method="post">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="accept">
+                                <button type="submit" class="btn btn-success w-100 mb-3 mx-3">Принять</button>
+                            </form>
+                        </div>
+                        <div class="col-md-6">
+                            <form method="post">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="reject">
+                                <button type="submit" class="btn btn-danger w-100 mb-3">Отклонить</button>
+                            </form>
+                        </div>
+                        <hr class="my-0">
+
+                    {% endif %}
+
+                    <!-- Добавленная обработка сообщений -->
+                    {% if messages %}
+                        <div class="col-md-12 mt-2">
+                            {% for message in messages %}
+                                <div class="alert alert-danger alert-dismissible fade show {% if message.tags %}alert-{{ message.tags }}{% endif %}"
+                                     role="alert">
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert"
+                                            aria-label="Close"></button>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    <!-- Конец добавленной обработки сообщений -->
+
+                    <div class="p-3 bg-light ">
+                        <table class="table table-striped mt-3 text-center">
+                            <thead>
+                            <tr>
+                                <th scope="col">Код</th>
+                                <th scope="col">Дата</th>
+                                <th scope="col">Тип</th>
+                                <th scope="col">Из склада</th>
+                                <th scope="col">В склад</th>
+                                <th scope="col">Примечания</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr>
+                                <td>{{ outgoing.code }}</td>
+                                <td>{{ outgoing.data }}</td>
+                                <td>{{ outgoing.outgoing_type }}</td>
+                                <td>{{ outgoing.warehouse }}</td>
+                                <td>{{ outgoing.to_warehouse }}</td>
+                                <td>{{ outgoing.note }}</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Таблица для отображения деталей заказа -->
+                <div class="row p-3 bg-light rounded">
+                    <div style="max-height: 400px; overflow-y: auto;">
+                        <table class="table table-striped mt-3 text-center">
+                            <thead>
+                            <tr>
+                                <th scope="col">Материал</th>
+                                <th scope="col">Количество</th>
+                                <th scope="col">Примечание</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for material in outgoing_materials %}
+                                <tr> <!-- Открываем новую строку -->
+                                    <td>{{ material.material }}</td>
+                                    <td>{{ material.amount }}</td>
+                                    <td>{{ material.comment }}</td>
+                                </tr> <!-- Закрываем строку -->
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% block dashboard %}
+    {% endblock %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            let alerts = document.querySelectorAll('.alert');
+
+            alerts.forEach(function (alert) {
+                if (alert.classList.contains('alert-success')) {
+                    alert.classList.add('bg-success', 'text-white');
+                } else if (alert.classList.contains('alert-danger')) {
+                    alert.classList.add('bg-danger', 'text-white');
+                }
+            });
+        });
+    </script>
+
+{% endblock %}
