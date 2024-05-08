@@ -132,8 +132,8 @@
 }
 
 .active {
-    background-color: #79AEC8FF;
-    border-radius: 25px;
+    background-color: #d4ebf2;
+    border-radius: 7px;
 }
 
 .sidebar .navbar .navbar-nav .nav-link:hover,
