@@ -22,11 +22,12 @@ def update_stock_on_incoming(sender, instance, created, **kwargs):
 
 @receiver(pre_save, sender=outgoing.Outgoing)
 def set_outgoing_status(sender, instance, **kwargs):
-	if not hasattr(instance, '_skip_signal'):
-		if instance.outgoing_type == 'перемешения':
-			instance.status = 'В ожидании'
-		else:
-			instance.status = 'Принят'
+	if not hasattr(instance, '_skip_signal'):  # Проверяем, был ли сигнал вызван программно
+		if instance.pk is None or instance.status == 'В ожидании':  # Устанавливаем статус при создании или если статус уже "В ожидании"
+			if instance.outgoing_type == 'перемешения':
+				instance.status = 'В ожидании'
+			else:
+				instance.status = 'Принят'
 
 
 # -----------------------------------INCOMING start--------------------------------------------------------------------
@@ -59,4 +60,11 @@ def check_stock(sender, instance, **kwargs):
 	if instance.outgoing.warehouse.use_negative == False:
 		stock = Stock.objects.filter(material=instance.material, warehouse=instance.outgoing.warehouse).first()
 		if stock is None or stock.amount < float(instance.amount):
-			raise ValidationError("Недостаточно материала на складе")
+			# Определяем доступное количество материала на складе
+			available_amount = 0 if stock is None else stock.amount
+
+			# Формируем сообщение об ошибке с информацией о доступном количестве материала
+			error_message = f"Недостаточно материала на складе. Доступно: {available_amount} {instance.material.unit}"
+
+			# Поднимаем исключение ValidationError с сообщением об ошибке
+			raise ValidationError(error_message)

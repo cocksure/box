@@ -4,7 +4,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse_lazy, reverse
 from django.utils import timezone
 from django.db import transaction
-from django.http import JsonResponse, HttpResponseRedirect
+from django.http import JsonResponse, HttpResponseRedirect, request
 from django.views import View
 from django.views.generic import DetailView, CreateView
 
@@ -93,6 +93,7 @@ class OutgoingDetailView(View):
 			return render(request, self.template_name, {'error_message': 'Outgoing object does not exist'})
 
 	def post(self, request, *args, **kwargs):
+
 		outgoing_id = kwargs.get('pk')
 		outgoing = get_object_or_404(Outgoing, pk=outgoing_id)
 		action = request.POST.get('action')
@@ -102,6 +103,7 @@ class OutgoingDetailView(View):
 		managers = warehouse.managers.all()
 
 		if request.user.is_authenticated and request.user in managers:
+
 			if action == 'accept':
 				# Обработка принятия расхода
 				outgoing.status = Outgoing.OutgoingStatus.ACCEPT
@@ -150,6 +152,8 @@ class OutgoingDetailView(View):
 				Stock.objects.bulk_update(stocks_to_update, ['amount'])
 
 			elif action == 'reject':
+				print("Action:", action)
+
 				outgoing.status = Outgoing.OutgoingStatus.REJECT
 				outgoing.save()
 
@@ -263,6 +267,21 @@ class OutgoingCreate(CreateView):
 		outgoing.created_by = self.request.user
 		outgoing.created_time = timezone.now()
 
+		warehouse_id = self.request.POST.get('warehouse')
+		warehouse = get_object_or_404(Warehouse, id=warehouse_id)
+
+		# Проверяем наличие материалов на складе
+		check_result, insufficient_materials = warehouse.has_enough_material(self.request.POST)
+
+		if not check_result:
+			error_message = 'Недостаточно материалов на складе'
+			messages.error(self.request, error_message)
+
+			# Сохраняем информацию о недостающих материалах в сессии
+			self.request.session['insufficient_materials'] = insufficient_materials
+
+			return super().form_invalid(form)
+
 		try:
 			with transaction.atomic():
 				outgoing.save()
@@ -312,13 +331,19 @@ class OutgoingCreate(CreateView):
 
 					Stock.objects.bulk_update(stocks_to_update, ['amount'])
 
+
 		except Exception as e:
-			return JsonResponse({'error': str(e)}, status=400)
+			messages.error(self.request, str(e))
+			return super().form_invalid(form)
 		else:
-			return HttpResponseRedirect(reverse_lazy('depo:outgoing-detail', kwargs={'pk': outgoing.pk}))
+			return HttpResponseRedirect(reverse_lazy('depo:outgoing-list'))
 
 	def form_invalid(self, form):
-		return JsonResponse({'success': False, 'errors': form.errors}, status=400)
+		# Добавляем сообщения об ошибках к форме
+		for field, errors in form.errors.items():
+			for error in errors:
+				self.add_error(field, error)
+		return super().form_invalid(form)
 
 	def get_context_data(self, **kwargs):
 		context = super().get_context_data(**kwargs)

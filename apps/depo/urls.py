@@ -1,5 +1,6 @@
 from django.urls import path
 
+from apps.depo import utils
 from apps.depo.views import IncomingListView, IncomingCreate, OutgoingCreate, OutgoingListView, UnacceptedOutgoingsView, \
 	OutgoingDetailView, IncomingDetailView, StockListView
 
@@ -17,5 +18,7 @@ urlpatterns = [
 	path('stock/', StockListView.as_view(), name='stock-list'),
 
 	path('unaccepted/', UnacceptedOutgoingsView.as_view(), name='unaccepted-list'),
+
+	path('check_material_availability/', utils.check_material_availability, name='check_material_availability'),
 
 ]

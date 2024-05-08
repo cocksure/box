@@ -4,6 +4,7 @@ from django.core.validators import FileExtensionValidator
 from django.utils.text import slugify
 from django.db import models
 
+from apps.depo.models.stock import Stock
 from apps.shared.models import BaseModel
 from apps.users.models import CustomUser
 
@@ -72,6 +73,28 @@ class Warehouse(BaseModel):
 									   verbose_name="Использовать отрицательные значения")
 	is_active = models.BooleanField(default=True, null=True, blank=True, verbose_name="Активен")
 	managers = models.ManyToManyField(CustomUser, blank=True, verbose_name="Менеджеры")
+
+	# Другие поля модели
+
+	def has_enough_material(self, form_data, insufficient_materials=None):
+		if insufficient_materials is None:
+			insufficient_materials = []
+
+		for key, value in form_data.items():
+			if key.startswith('outgoing_material_'):
+				material_id = value
+				amount = form_data.get('outgoing_amount_' + key.split('_')[-1], 0)
+				try:
+					stock = Stock.objects.get(warehouse=self, material_id=material_id)
+					if stock.amount < int(amount):
+						insufficient_materials.append(
+							{'material': stock.material.name, 'available_amount': stock.amount})
+						return False
+				except Stock.DoesNotExist:
+					insufficient_materials.append(
+						{'material': Material.objects.get(id=material_id).name, 'available_amount': 0})
+					return False
+		return True, insufficient_materials
 
 	def __str__(self):
 		return self.name

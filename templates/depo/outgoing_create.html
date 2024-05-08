@@ -18,6 +18,29 @@
                                 </button>
                             </div>
                             <hr class="my-0">
+
+                            {% if messages %}
+                                <div class="col-md-12 mt-2" id="error-message">
+                                    {% for message in messages %}
+                                        <div class="alert alert-danger alert-dismissible fade show {% if message.tags %}alert-{{ message.tags }}{% endif %}"
+                                             role="alert">
+                                            {% if message == 'Недостаточно материалов на складе' %}
+                                                {{ message }}
+                                                <ul>
+                                                    {% for material, amount in request.session.insufficient_materials %}
+                                                        <li>{{ material }}: {{ amount }}</li>
+                                                    {% endfor %}
+                                                </ul>
+                                            {% else %}
+                                                {{ message }}
+                                            {% endif %}
+                                            <button type="button" class="btn-close" data-bs-dismiss="alert"
+                                                    aria-label="Close"></button>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+
                         </div>
 
                         <div class="row rounded ">
@@ -57,6 +80,9 @@
                                             aria-label="Close"></button>
                                 </div>
                                 <div class="modal-body">
+                                    <div id="myModalErrorMessage" class="alert alert-danger"
+                                         style="display: none;"></div>
+
                                     <form id="myModalCreateForm">
                                         <div class="mb-3">
                                             <label for="outgoing_material">Материал</label>
@@ -106,7 +132,7 @@
     {% block dashboard %}
     {% endblock %}
 
-<script>
+    <script>
         document.addEventListener('DOMContentLoaded', function () {
             let detailCounter = 1;
 
@@ -193,16 +219,20 @@
             document.getElementById('id_form').addEventListener('submit', function (event) {
                 event.preventDefault();
 
+                // Установка значения счетчика деталей в FormData
                 document.getElementById('detail_counter').value = detailCounter;
 
+                // Создание объекта FormData для данных формы
                 let formData = new FormData(this);
-                let outgoingMaterials = document.querySelectorAll('.outgoing_material, .outgoing_amount, .outgoing_comment');
 
+                // Получение всех материалов, количества и комментариев и добавление их в FormData
+                let outgoingMaterials = document.querySelectorAll('.outgoing_material, .outgoing_amount, .outgoing_comment');
                 outgoingMaterials.forEach(function (detail) {
                     formData.append(detail.name, detail.value);
                 });
 
-                fetch('{% url "depo:outgoing-create" %}', {
+                // Отправка запроса на сервер для проверки наличия достаточного количества материалов на складе
+                fetch('{% url "depo:check_material_availability" %}', {
                     method: 'POST',
                     body: formData,
                     headers: {
@@ -213,11 +243,56 @@
                         if (!response.ok) {
                             throw new Error('Network response was not ok');
                         } else {
-                            window.location.href = '{% url "depo:outgoing-list" %}';
+                            return response.json();
+                        }
+                    })
+                    .then(data => {
+                        // Если запрос успешен и сервер вернул данные
+                        if (data.success) {
+                            // Если материалов достаточно, отправляем форму создания расхода
+                            fetch('{% url "depo:outgoing-create" %}', {
+                                method: 'POST',
+                                body: formData,
+                                headers: {
+                                    'X-CSRFToken': '{{ csrf_token }}'
+                                }
+                            })
+                                .then(response => {
+                                    if (!response.ok) {
+                                        throw new Error('Network response was not ok');
+                                    } else {
+                                        // Перенаправляем пользователя на страницу списка расходов
+                                        window.location.href = '{% url "depo:outgoing-list" %}';
+                                    }
+                                })
+                                .catch(error => {
+                                    console.error('Error while creating outgoing:', error);
+                                });
+                        } else {
+                            // Если материалов недостаточно, добавляем сообщение об ошибке на страницу
+                            let errorMessageElement = document.createElement('div');
+                            errorMessageElement.classList.add('alert', 'alert-danger');
+                            errorMessageElement.textContent = data.error;
+
+                            // Добавляем информацию о недостающих материалах
+                            if (data.insufficient_materials) {
+                                errorMessageElement.textContent += '\nНедостаточно материалов:';
+                                data.insufficient_materials.forEach(material => {
+                                    errorMessageElement.textContent += `\n${material.name}: ${material.amount}`;
+                                });
+                            }
+
+                            document.getElementById('error-message').appendChild(errorMessageElement);
                         }
                     })
                     .catch(error => {
-                        console.error('Error:', error);
+                        console.error('Error during material availability check:', error);
+
+                        // Добавляем сообщение об ошибке на страницу
+                        let errorMessageElement = document.createElement('div');
+                        errorMessageElement.classList.add('alert', 'alert-danger');
+                        errorMessageElement.textContent = 'Ошибка при проверке наличия материалов на складе';
+                        document.getElementById('error-message').appendChild(errorMessageElement);
                     });
             });
 
