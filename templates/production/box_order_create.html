@@ -24,22 +24,28 @@
                             <form id="id_form" method="post" class="row g-3">
                                 {% csrf_token %}
                                 <div class="col-md-3">
+                                    <label for="{{ form.customer.id_for_label }}">Закачик</label>
                                     {{ form.customer }}
                                 </div>
                                 <div class="col-md-3">
+                                    <label for="{{ form.customer_buyer.id_for_label }}">Покупатель</label>
                                     {{ form.customer_buyer }}
                                 </div>
                                 <div class="col-md-2">
+                                    <label for="{{ form.type_order.id_for_label }}">Тип заказа</label>
                                     {{ form.type_order }}
                                 </div>
                                 <div class="col-md-2">
+                                    <label for="{{ form.specification.id_for_label }}">Спецификация</label>
                                     {{ form.specification }}
                                 </div>
                                 <div class="col-md-2">
+                                    <label for="{{ form.date_of_production.id_for_label }}">Дата</label>
                                     {{ form.date_of_production }}
                                 </div>
                                 <input type="hidden" id="detail_counter" name="detail_counter" value="1">
                             </form>
+
                         </div>
                     </div>
 
@@ -111,8 +117,6 @@
                 let boxModel = document.getElementById('box_model').value;
                 let amount = document.getElementById('amount').value;
 
-                console.log('Box Model:', boxModel);
-                console.log('Amount:', amount);
 
                 let boxModelFieldName = 'box_model_' + detailCounter;
                 let amountFieldName = 'amount_' + detailCounter;
@@ -185,7 +189,7 @@
                     console.log('Fields already exist for this detail'); // Отладочный вывод
                 }
             });
-
+            
 
             document.getElementById('id_form').addEventListener('submit', function (event) {
                 event.preventDefault();
@@ -212,7 +216,7 @@
                         if (!response.ok) {
                             throw new Error('Network response was not ok');
                         } else {
-                            window.location.href = '{% url "box-order-list" %}';
+                            window.location.href = '{% url "production:box-order-list" %}';
                         }
                     })
                     .catch(error => {

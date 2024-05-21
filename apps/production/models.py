@@ -17,6 +17,18 @@ class Process(models.Model):
 		verbose_name_plural = "Процессы"
 
 
+class TypeWork(models.Model):
+	name = models.CharField(max_length=100, unique=True, verbose_name="Тип работы")
+	process = models.ManyToManyField(Process, verbose_name="Процесс")
+
+	def __str__(self):
+		return self.name
+
+	class Meta:
+		verbose_name = "Тип работы"
+		verbose_name_plural = "Типы работы"
+
+
 class BoxModel(BaseModel):
 	CLOSURE_TYPE_CHOICES = (
 		(1, "Склейка"),
@@ -74,11 +86,17 @@ class BoxOrder(BaseModel):
 		REJECT = 'Отклонено', 'Отклонено'
 		NEW = 'НОВАЯ', 'НОВАЯ'
 
+	class BoxTypeOrder(models.TextChoices):
+		SAMPLE = 'Образец', 'Образец'
+		EXPORT = 'Экспорт', 'Экспорт'
+		INTERNAL_MARKET = 'Внутренный рынок', 'Внутренный рынок'
+		SERVICE = 'Услуга', 'Услуга'
+
 	data = models.DateField(editable=True, verbose_name="Дата")
 	customer = models.ForeignKey(Firm, models.SET_NULL, verbose_name="Клиент", null=True)
 	status = models.CharField(choices=BoxOrderStatus.choices, default=BoxOrderStatus.NEW, null=True, blank=True,
 							  max_length=20, verbose_name="Статус")
-	type_order = models.CharField(max_length=100, verbose_name="Тип заказа")
+	type_order = models.CharField(max_length=100, choices=BoxTypeOrder.choices, verbose_name="Тип заказа")
 	specification = models.ForeignKey(Specification, on_delete=models.SET_NULL, null=True, verbose_name="Спецификация")
 	manager = models.ForeignKey(CustomUser, on_delete=models.CASCADE, null=True, blank=True, verbose_name="Менеджер")
 	date_of_production = models.DateField(editable=True, verbose_name="Дата производства")
@@ -129,7 +147,7 @@ class ProductionOrder(models.Model):
 		null=True,
 		verbose_name="Детали заказа коробки"
 	)
-	shipping_date = models.DateField(verbose_name="Дата доставки")
+	shipping_date = models.DateField(verbose_name="Дата доставки", null=True, blank=True)
 	amount = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Количество")
 
 	status_choices = (
@@ -137,8 +155,9 @@ class ProductionOrder(models.Model):
 		('completed', 'Completed'),
 		('not_started', 'Not Started'),
 	)
-	status = models.CharField(max_length=20, choices=status_choices, default='not_started', verbose_name="Статус")
-	type_of_work = models.ManyToManyField(Process, related_name='processes', blank=True, verbose_name="Тип работы")
+	status = models.CharField(max_length=20, choices=status_choices, null=True, blank=True, default='not_started',
+							  verbose_name="Статус")
+	type_of_work = models.ForeignKey(TypeWork, on_delete=models.SET_NULL, null=True, verbose_name="Тип Работы")
 
 	class Meta:
 		verbose_name = "Производственный заказ"

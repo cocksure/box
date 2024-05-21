@@ -2,7 +2,7 @@ from django import forms
 from django.forms import inlineformset_factory
 
 from apps.info.models import Material, BoxSize, BoxType, Firm
-from apps.production.models import BoxModel
+from apps.production.models import BoxModel, ProductionOrder
 from .models import BoxOrder, BoxOrderDetail
 
 
@@ -41,28 +41,30 @@ class BoxModelForm(forms.ModelForm):
 		self.fields['box_type'].queryset = BoxType.objects.all()
 
 
+from django import forms
+from .models import BoxOrder
+
+
 class BoxOrderForm(forms.ModelForm):
-	customer = forms.ModelChoiceField(queryset=Firm.objects.all(), empty_label='Заказчик',
-									  widget=forms.Select(attrs={'class': 'form-control'}))
-	customer_buyer = forms.ModelChoiceField(queryset=Firm.objects.all(), empty_label='Покупатель',
-											widget=forms.Select(
-												attrs={'class': 'form-control',
-													   'placeholder': 'Введите имя покупателя'}))
+	customer_buyer = forms.ModelChoiceField(
+		queryset=BoxOrder.objects.all(),
+		widget=forms.Select(attrs={'class': 'form-control'}),
+		label='Customer Buyer'
+	)
 
 	class Meta:
 		model = BoxOrder
-		fields = ['customer', 'type_order', 'specification', 'date_of_production']
+		fields = ['customer', 'customer_buyer', 'type_order', 'specification', 'date_of_production']
 		widgets = {
-			'data': forms.DateInput(attrs={'class': 'form-control'}),
-			'type_order': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Тип заказа'}),
-			'specification': forms.Select(attrs={'class': 'form-control', }),
-			'date_of_production': forms.DateInput(
-				attrs={'class': 'form-control', 'type': 'date', }),
+			'customer': forms.Select(attrs={'class': 'form-control'}),
+			'type_order': forms.Select(attrs={'class': 'form-control'}),
+			'specification': forms.Select(attrs={'class': 'form-control'}),
+			'date_of_production': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
 		}
 
 	def __init__(self, *args, **kwargs):
-		super().__init__(*args, **kwargs)
-		self.fields['specification'].empty_label = 'Cпецификация'
+		super(BoxOrderForm, self).__init__(*args, **kwargs)
+		self.fields['customer_buyer'].queryset = self.fields['customer'].queryset
 
 
 class BoxOrderDetailForm(forms.ModelForm):
@@ -81,3 +83,13 @@ class BoxOrderDetailForm(forms.ModelForm):
 
 
 BoxOrderDetailFormSet = inlineformset_factory(BoxOrder, BoxOrderDetail, form=BoxOrderDetailForm, extra=1)
+
+
+class ProductionOrderForm(forms.ModelForm):
+	class Meta:
+		model = ProductionOrder
+		fields = ['shipping_date', 'type_of_work']
+		widgets = {
+			'shipping_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date', }),
+			'type_of_work': forms.Select(attrs={'class': 'form-select'}),
+		}

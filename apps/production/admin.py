@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Process, BoxModel, BoxOrder, BoxOrderDetail, ProductionOrder
+from .models import Process, BoxModel, BoxOrder, BoxOrderDetail, ProductionOrder, TypeWork
 
 
 # @admin.register(UploadImage)
@@ -22,8 +22,15 @@ class ProcessAdmin(admin.ModelAdmin):
 	list_display = ('name',)
 
 
-from django.contrib import admin
-from .models import BoxModel
+@admin.register(TypeWork)
+class TypeWorkAdmin(admin.ModelAdmin):
+	list_display = ('name', 'display_processes')
+	search_fields = ('name',)
+
+	def display_processes(self, obj):
+		return ", ".join([process.name for process in obj.process.all()])
+
+	display_processes.short_description = 'Процессы'
 
 
 @admin.register(BoxModel)
@@ -78,7 +85,8 @@ class BoxOrderDetailAdmin(admin.ModelAdmin):
 
 @admin.register(ProductionOrder)
 class ProductionOrderAdmin(admin.ModelAdmin):
-	list_display = ['id', 'shipping_date', 'amount']
+	list_display = ['box_order_detail', 'shipping_date', 'amount']
 
-# def display_box_order_details(self, obj):
-#         return ", ".join([str(box_order_detail) for box_order_detail in obj.box_order_detail.all()])
+
+def display_box_order_details(self, obj):
+	return ", ".join([str(box_order_detail) for box_order_detail in obj.box_order_detail.all()])

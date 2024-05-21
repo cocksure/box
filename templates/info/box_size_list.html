@@ -25,10 +25,10 @@
                         </div>
                     </div>
 
-
                     <!--  Modal -->
                     {% include 'modal_template.html' %}
 
+                
                     <!--  Table -->
                     <div class="table-responsive">
                         <table class="table table-striped">
@@ -52,8 +52,7 @@
                         </table>
                     </div>
 
-                    <!-- Первые два блока вашего HTML-кода остаются без изменений -->
-
+                
                     <!-- Блок с пагинацией -->
                     {% include 'pagination.html' with items=items %}
 
@@ -62,25 +61,8 @@
             </div>
         </div>
     </div>
-
-    <!-- Table End -->
-
+    
     {% block dashboard %}
     {% endblock %}
-
-    <script>
-        $(document).ready(function () {
-            $('#myModal').on('show.bs.modal', function () {
-                $('#myModalForm')[0].reset();
-
-                $('#name').val('Значение по умолчанию');
-            });
-
-            $('#openModalBtn').click(function () {
-                $('#myModal').modal('show');
-            });
-        });
-
-    </script>
 
 {% endblock %}

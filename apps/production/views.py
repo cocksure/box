@@ -7,8 +7,9 @@ from django.utils import timezone
 from django.views import View
 from django.views.generic import CreateView, DetailView
 
-from apps.production.forms import BoxModelForm, BoxOrderForm, BoxOrderDetailFormSet
-from apps.production.models import BoxModel, BoxOrder, BoxOrderDetail
+from apps.production.forms import BoxModelForm, BoxOrderForm, BoxOrderDetailFormSet, BoxOrderDetailForm, \
+	ProductionOrderForm
+from apps.production.models import BoxModel, BoxOrder, BoxOrderDetail, ProductionOrder, TypeWork
 from django.http import JsonResponse, HttpResponseRedirect
 from django.db import transaction
 
@@ -107,13 +108,16 @@ class BoxOrderDetailView(DetailView):
 	model = BoxOrder
 	template_name = 'production/box_order_detail.html'
 	context_object_name = 'box_order'
+	form_class = ProductionOrderForm
 
 	def get(self, request, *args, **kwargs):
 		box_order = self.get_object()
 		order_details = box_order.boxorderdetail_set.all()
+		form = self.form_class()  # Создаем экземпляр формы
 		return render(request, self.template_name, {
 			self.context_object_name: box_order,
-			'order_details': order_details
+			'order_details': order_details,
+			'form': form  # Передаем форму в контекст
 		})
 
 	def post(self, request, *args, **kwargs):
@@ -123,8 +127,19 @@ class BoxOrderDetailView(DetailView):
 			if new_status in [choice[0] for choice in box_order.BoxOrderStatus.choices]:
 				box_order.status = new_status
 				box_order.save()
-				return HttpResponseRedirect(reverse_lazy('box-order-detail', kwargs={'pk': box_order.pk}))
+				return redirect('production:box-order-detail', pk=box_order.pk)
 			else:
 				return JsonResponse({'error': 'Invalid status parameter'}, status=400)
 		else:
-			return JsonResponse({'error': 'Status parameter missing'}, status=400)
+			# Создаем объект ProductionOrder для каждой детали заказа отдельно
+			for detail in box_order.boxorderdetail_set.all():
+				form = self.form_class(request.POST)
+				if form.is_valid():
+					production_order = form.save(commit=False)
+					production_order.box_order_detail = detail
+					production_order.amount = detail.amount
+					production_order.save()
+				else:
+					# Если форма недействительна, вы можете обработать это здесь
+					pass
+			return redirect('production:box-order-detail', pk=box_order.pk)

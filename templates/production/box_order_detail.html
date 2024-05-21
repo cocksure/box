@@ -12,7 +12,8 @@
                         <div class="row ">
                             <div class="row rounded mt-3 mb-3">
                                 {% if request.user.is_director and box_order.status == 'НОВАЯ' %}
-                                    <form action="{% url 'box-order-detail' pk=box_order.pk %}" method="post">
+                                    <form action="{% url 'production:box-order-detail' pk=box_order.pk %}"
+                                          method="post">
                                         {% csrf_token %}
                                         <div class="d-flex">
 
@@ -50,16 +51,20 @@
                             </table>
                             <hr>
                         </div>
-
-
                     </div>
 
+
+                    <!--  Modal -->
+                    {% include 'modal_template.html' %}
+
+                
                     <!-- Таблица для отображения деталей заказа -->
                     <div class="row p-3 bg-light rounded">
                         <div style="height: 580px; overflow: scroll">
                             <table class="table table-striped mt-3 ">
                                 <thead class="p-3">
                                 <tr>
+                                    <th scope="col">ID</th>
                                     <th scope="col">Модель коробки</th>
                                     <th scope="col">Количество</th>
                                     <th scope="col">Действия</th>
@@ -68,9 +73,16 @@
                                 <tbody id="order_details_table">
                                 {% for detail in order_details %}
                                     <tr>
+                                        <td>{{ detail.id }}</td>
                                         <td>{{ detail.box_model }}</td>
                                         <td>{{ detail.amount }}</td>
-                                        <td>...</td>
+                                        <td>
+                                            <button type="button" class="btn btn-primary" id="openCreateModalBtn"
+                                                    data-bs-toggle="modal" data-bs-target="#myModalCreate"
+                                                    data-action-url="{% url 'production:box-order-detail' pk=box_order.pk %}">
+                                                <i class="fa fa-list"></i>
+                                            </button>
+                                        </td>
                                     </tr>
                                 {% endfor %}
                                 </tbody>
@@ -82,7 +94,7 @@
             </div>
         </div>
     </div>
-    
+
     {% block dashboard %}
     {% endblock %}
 {% endblock %}
