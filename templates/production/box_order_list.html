@@ -30,24 +30,49 @@
                             </form>
                         </div>
                         <div class="col-md-6 text-end">
-                            <form id="status-form" method="GET" action="{% url 'production:box-order-list' %}">
-                                <select id="status-filter" name="status" class="form-select">
-                                    <option value="all" {% if selected_status == 'all' %} selected {% endif %}>Все
-                                    </option>
-                                    <option value="{{ BoxOrder.BoxOrderStatus.NEW }}"
-                                            {% if selected_status == BoxOrder.BoxOrderStatus.NEW %}
-                                            selected {% endif %}>Новые
-                                    </option>
-                                    <option value="{{ BoxOrder.BoxOrderStatus.ACCEPT }}"
-                                            {% if selected_status == BoxOrder.BoxOrderStatus.ACCEPT %}
-                                            selected {% endif %}>Одобренные
-                                    </option>
-                                    <option value="{{ BoxOrder.BoxOrderStatus.REJECT }}"
-                                            {% if selected_status == BoxOrder.BoxOrderStatus.REJECT %}
-                                            selected {% endif %}>Отклоненные
-                                    </option>
-                                </select>
-                            </form>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <form id="status-form" method="GET" action="{% url 'production:box-order-list' %}">
+                                        <select id="status-filter" name="status" class="form-select">
+                                            <option value="all" {% if selected_status == 'all' %} selected {% endif %}>
+                                                Все
+                                            </option>
+                                            <option value="НОВАЯ" {% if selected_status == 'НОВАЯ' %}
+                                                    selected {% endif %}>Новые
+                                            </option>
+                                            <option value="Одобрено" {% if selected_status == 'Одобрено' %}
+                                                    selected {% endif %}>Одобренные
+                                            </option>
+                                            <option value="Отклонено" {% if selected_status == 'Отклонено' %}
+                                                    selected {% endif %}>Отклоненные
+                                            </option>
+                                        </select>
+                                    </form>
+                                </div>
+                                <div class="col-md-6">
+                                    <form id="type_order-form" method="GET"
+                                          action="{% url 'production:box-order-list' %}">
+                                        <select id="type_order-filter" name="type_order" class="form-select">
+                                            <option value="all" {% if selected_type_order == 'all' %}
+                                                    selected {% endif %}>Все
+                                            </option>
+                                            <option value="Образец" {% if selected_type_order == 'Образец' %}
+                                                    selected {% endif %}>Образец
+                                            </option>
+                                            <option value="Экспорт" {% if selected_type_order == 'Экспорт' %}
+                                                    selected {% endif %}>Экспорт
+                                            </option>
+                                            <option value="Внутренный рынок"
+                                                    {% if selected_type_order == 'Внутренный рынок' %}
+                                                    selected {% endif %}>Внутренный рынок
+                                            </option>
+                                            <option value="Услуга" {% if selected_type_order == 'Услуга' %}
+                                                    selected {% endif %}>Услуга
+                                            </option>
+                                        </select>
+                                    </form>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -86,57 +111,49 @@
                         </table>
                     </div>
 
-                    <!-- Pagination -->
-                    <nav aria-label="Page navigation">
-                        <ul class="pagination justify-content-end">
-                            {% if box_orders.has_previous %}
-                                <li class="page-item">
-                                    <a class="page-link" href="?page=1">&laquo; В начало</a>
-                                </li>
-                                <li class="page-item">
-                                    <a class="page-link" href="?page={{ box_orders.previous_page_number }}">Пред</a>
-                                </li>
-                            {% endif %}
-
-                            {% for i in box_orders.paginator.page_range %}
-                                <li class="page-item {% if i == box_orders.number %}active{% endif %}">
-                                    <a class="page-link" href="?page={{ i }}">{{ i }}</a>
-                                </li>
-                            {% endfor %}
-
-                            {% if box_orders.has_next %}
-                                <li class="page-item">
-                                    <a class="page-link" href="?page={{ box_orders.next_page_number }}">След</a>
-                                </li>
-                                <li class="page-item">
-                                    <a class="page-link" href="?page={{ box_orders.paginator.num_pages }}">&raquo;</a>
-                                </li>
-                            {% endif %}
-                        </ul>
-                    </nav>
+                    <!-- Pagination start -->
+                    {% include 'pagination.html' with items=items %}
+                    <!-- Pagination end -->
 
                 </div>
             </div>
         </div>
     </div>
 
+
+    {% block dashboard %}
+    {% endblock %}
+
+    <script>
+        document.getElementById('status-filter').addEventListener('change', function () {
+            const statusForm = document.getElementById('status-form');
+            const typeOrderFilter = document.getElementById('type_order-filter');
+            const statusInput = document.createElement('input');
+
+            statusInput.type = 'hidden';
+            statusInput.name = 'type_order';
+            statusInput.value = typeOrderFilter.value;
+
+            statusForm.appendChild(statusInput);
+            statusForm.submit();
+        });
+
+        document.getElementById('type_order-filter').addEventListener('change', function () {
+            const typeOrderForm = document.getElementById('type_order-form');
+            const statusFilter = document.getElementById('status-filter');
+            const statusInput = document.createElement('input');
+
+            statusInput.type = 'hidden';
+            statusInput.name = 'status';
+            statusInput.value = statusFilter.value;
+
+            typeOrderForm.appendChild(statusInput);
+            typeOrderForm.submit();
+        });
+    </script>
+
+
+
+
+
 {% endblock %}
-
-{% block dashboard %}
-{% endblock %}
-
-<script>
-    // Получаем текущее значение статуса из URL
-    var urlParams = new URLSearchParams(window.location.search);
-    var selectedStatus = urlParams.get('status');
-
-    // Устанавливаем выбранное значение статуса в форме
-    if (selectedStatus) {
-        document.getElementById('status-filter').value = selectedStatus;
-    }
-
-    // Отправляем форму при изменении значения
-    document.getElementById('status-filter').addEventListener('change', function () {
-        document.getElementById('status-form').submit();
-    });
-</script>

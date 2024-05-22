@@ -64,7 +64,7 @@ def check_stock(sender, instance, **kwargs):
 			available_amount = 0 if stock is None else stock.amount
 
 			# Формируем сообщение об ошибке с информацией о доступном количестве материала
-			error_message = f"Недостаточно материала на складе. Доступно: {available_amount} {instance.material.unit}"
+			error_message = f"Недостаточно материала на складе. Доступно: {available_amount} {instance.material.unit_of_measurement}"
 
 			# Поднимаем исключение ValidationError с сообщением об ошибке
 			raise ValidationError(error_message)

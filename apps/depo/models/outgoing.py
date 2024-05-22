@@ -2,6 +2,7 @@ from django.core.exceptions import ValidationError
 
 from apps.depo.services import validate_outgoing, validate_use_negative, validate_movement_outgoing
 from apps.info.models import Material, Warehouse
+from apps.production.models import ProductionOrder
 from apps.shared.models import BaseModel
 from django.db import models
 
@@ -29,6 +30,8 @@ class Outgoing(BaseModel):
 	status = models.CharField(max_length=20, choices=OutgoingStatus.choices, default=OutgoingStatus.IN_PROGRESS,
 							  null=True, blank=True, verbose_name="Статус")
 	note = models.CharField(max_length=250, null=True, blank=True, verbose_name="Примечание")
+	production_order = models.ForeignKey(ProductionOrder, on_delete=models.CASCADE, null=True, blank=True,
+										 related_name='outgoings')
 
 	class Meta:
 		verbose_name = "Расход"
@@ -80,5 +83,5 @@ class OutgoingMaterial(models.Model):
 		verbose_name = "Материал расхода"
 		verbose_name_plural = "Материалы расхода"
 
-		def __str__(self):
-			return f"{self.material} {self.amount}"
+	def __str__(self):
+		return f"{self.material}  |  количество: {self.amount}"

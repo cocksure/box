@@ -9,6 +9,14 @@
             <div class="col-sm-12">
                 <div class="">
                     <div class="row bg-light rounded mb-3 p-2">
+                        {% if messages %}
+                            <ul class="messages">
+                                {% for message in messages %}
+                                    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+
                         <div class="row ">
                             <div class="row rounded mt-3 mb-3">
                                 {% if request.user.is_director and box_order.status == 'НОВАЯ' %}
@@ -53,11 +61,32 @@
                         </div>
                     </div>
 
+                    <!-- Модальное окно для создания ProductionOrder -->
+                    <div class="modal fade" id="myModalCreate" tabindex="-1" aria-labelledby="exampleModalLabel"
+                         aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="exampleModalLabel">Создать Production Order</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                            aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <form id="createProductionOrderForm" method="post"
+                                          action="{% url 'production:box-order-detail' pk=box_order.pk %}">
+                                        {% csrf_token %}
+                                        {{ form.as_p }}
+                                        <input type="hidden" name="box_order_detail_id" id="boxOrderDetailId">
+                                        <div class="modal-footer">
 
-                    <!--  Modal -->
-                    {% include 'modal_template.html' %}
+                                            <button type="submit" class="btn btn-primary">Создать</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
-                
                     <!-- Таблица для отображения деталей заказа -->
                     <div class="row p-3 bg-light rounded">
                         <div style="height: 580px; overflow: scroll">
@@ -66,6 +95,8 @@
                                 <tr>
                                     <th scope="col">ID</th>
                                     <th scope="col">Модель коробки</th>
+                                    <th scope="col">Материал</th>
+                                    <th scope="col">Размер</th>
                                     <th scope="col">Количество</th>
                                     <th scope="col">Действия</th>
                                 </tr>
@@ -75,11 +106,14 @@
                                     <tr>
                                         <td>{{ detail.id }}</td>
                                         <td>{{ detail.box_model }}</td>
+                                        <td>{{ detail.box_model.material }}</td>
+                                        <td>{{ detail.box_model.box_size }}</td>
                                         <td>{{ detail.amount }}</td>
                                         <td>
-                                            <button type="button" class="btn btn-primary" id="openCreateModalBtn"
-                                                    data-bs-toggle="modal" data-bs-target="#myModalCreate"
-                                                    data-action-url="{% url 'production:box-order-detail' pk=box_order.pk %}">
+                                            <button type="button" class="btn btn-primary openCreateModalBtn"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#myModalCreate"
+                                                    data-detail-id="{{ detail.id }}">
                                                 <i class="fa fa-list"></i>
                                             </button>
                                         </td>
@@ -97,4 +131,17 @@
 
     {% block dashboard %}
     {% endblock %}
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const modal = document.getElementById('myModalCreate');
+            const inputDetailId = document.getElementById('boxOrderDetailId');
+            modal.addEventListener('show.bs.modal', function (event) {
+                const button = event.relatedTarget;
+                const detailId = button.getAttribute('data-detail-id');
+                inputDetailId.value = detailId;
+            });
+        });
+    </script>
 {% endblock %}

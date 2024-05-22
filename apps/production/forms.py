@@ -1,6 +1,5 @@
-from django import forms
 from django.forms import inlineformset_factory
-
+from django import forms
 from apps.info.models import Material, BoxSize, BoxType, Firm
 from apps.production.models import BoxModel, ProductionOrder
 from .models import BoxOrder, BoxOrderDetail
@@ -39,10 +38,6 @@ class BoxModelForm(forms.ModelForm):
 		self.fields['material'].queryset = Material.objects.all()
 		self.fields['box_size'].queryset = BoxSize.objects.all()
 		self.fields['box_type'].queryset = BoxType.objects.all()
-
-
-from django import forms
-from .models import BoxOrder
 
 
 class BoxOrderForm(forms.ModelForm):

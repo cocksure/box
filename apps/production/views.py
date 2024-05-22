@@ -7,13 +7,16 @@ from django.utils import timezone
 from django.views import View
 from django.views.generic import CreateView, DetailView
 
+from apps.depo.models.outgoing import Outgoing, OutgoingMaterial
+from apps.depo.models.stock import Stock
+from apps.info.models import Warehouse
 from apps.production.forms import BoxModelForm, BoxOrderForm, BoxOrderDetailFormSet, BoxOrderDetailForm, \
 	ProductionOrderForm
 from apps.production.models import BoxModel, BoxOrder, BoxOrderDetail, ProductionOrder, TypeWork
 from django.http import JsonResponse, HttpResponseRedirect
 from django.db import transaction
 
-from apps.shared.views import BaseListCreateView
+from apps.shared.views import BaseListCreateView, BaseListView
 
 
 class BoxModelListCreate(BaseListCreateView):
@@ -43,12 +46,30 @@ class BoxModelEditView(View, LoginRequiredMixin):
 		return render(request, 'production/box_model_edit.html', context)
 
 
-class BoxOrderListView(BaseListCreateView):
+class BoxOrderListView(BaseListView):
 	def get(self, request):
 		box_orders = BoxOrder.objects.all().order_by('-created_time')
+
+		# Получаем параметры запроса для фильтрации
+		status = request.GET.get('status', 'all')
+		type_order = request.GET.get('type_order', 'all')
+
+		# Фильтрация по статусу
+		if status and status != "all":
+			box_orders = box_orders.filter(status=status)
+
+		# Фильтрация по типу заказа
+		if type_order and type_order != "all":
+			box_orders = box_orders.filter(type_order=type_order)
+
+		# Применяем пагинацию и поиск
 		page_obj = self.apply_pagination_and_search(box_orders, request)
+
 		context = {
+			'items': page_obj,
 			'box_orders': page_obj,
+			'selected_status': status,
+			'selected_type_order': type_order,
 		}
 		return render(request, "production/box_order_list.html", context)
 
@@ -113,11 +134,11 @@ class BoxOrderDetailView(DetailView):
 	def get(self, request, *args, **kwargs):
 		box_order = self.get_object()
 		order_details = box_order.boxorderdetail_set.all()
-		form = self.form_class()  # Создаем экземпляр формы
+		form = self.form_class()
 		return render(request, self.template_name, {
 			self.context_object_name: box_order,
 			'order_details': order_details,
-			'form': form  # Передаем форму в контекст
+			'form': form
 		})
 
 	def post(self, request, *args, **kwargs):
@@ -131,15 +152,70 @@ class BoxOrderDetailView(DetailView):
 			else:
 				return JsonResponse({'error': 'Invalid status parameter'}, status=400)
 		else:
-			# Создаем объект ProductionOrder для каждой детали заказа отдельно
-			for detail in box_order.boxorderdetail_set.all():
-				form = self.form_class(request.POST)
-				if form.is_valid():
+			detail_id = request.POST.get('box_order_detail_id')
+
+			try:
+				detail = box_order.boxorderdetail_set.get(pk=detail_id)
+			except BoxOrderDetail.DoesNotExist:
+				return JsonResponse({'error': 'Invalid box order detail ID'}, status=400)
+
+			form = self.form_class(request.POST)
+			if form.is_valid():
+				with transaction.atomic():
 					production_order = form.save(commit=False)
 					production_order.box_order_detail = detail
 					production_order.amount = detail.amount
 					production_order.save()
-				else:
-					# Если форма недействительна, вы можете обработать это здесь
-					pass
-			return redirect('production:box-order-detail', pk=box_order.pk)
+
+					# Создаем запись о расходе
+					warehouse_id = 4
+					try:
+						warehouse = Warehouse.objects.get(pk=warehouse_id)
+					except Warehouse.DoesNotExist:
+						return JsonResponse({'error': 'Invalid warehouse ID'}, status=400)
+
+					outgoing = Outgoing.objects.create(
+						data=production_order.shipping_date,
+						outgoing_type=Outgoing.OutgoingType.OUTGO,
+						warehouse=warehouse,
+						created_by=request.user
+					)
+
+					OutgoingMaterial.objects.create(
+						outgoing=outgoing,
+						material=detail.box_model.material,  # Предполагается, что в box_model есть связь с материалом
+						amount=detail.amount
+					)
+
+					# Обновляем запасы на складе
+					stock, created = Stock.objects.get_or_create(material=detail.box_model.material,
+																 warehouse=warehouse)
+					stock.amount -= detail.amount
+					stock.save()
+
+				return redirect('production:box-order-detail', pk=box_order.pk)
+			else:
+				messages.error(request, 'Недостаточно материалов на складе.')
+
+				return JsonResponse({'error': 'Form validation failed'}, status=400)
+
+
+class ProductionOrderListView(BaseListView):
+	def get(self, request):
+		production_orders = ProductionOrder.objects.all().order_by('-created_time')
+
+		# Получаем параметры запроса для фильтрации
+		status = request.GET.get('status', 'all')
+
+		# Фильтрация по статусу
+		if status and status != "all":
+			production_orders = production_orders.filter(status=status)
+
+		page_obj = self.apply_pagination_and_search(production_orders, request)
+
+		context = {
+			'items': page_obj,
+			'production_orders': page_obj,
+			'selected_status': status,
+		}
+		return render(request, "production/production_order_list.html", context)

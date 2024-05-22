@@ -1,5 +1,6 @@
 from django.contrib import admin
 from .models import Process, BoxModel, BoxOrder, BoxOrderDetail, ProductionOrder, TypeWork
+from ..depo.admin import OutgoingInline
 
 
 # @admin.register(UploadImage)
@@ -19,7 +20,7 @@ from .models import Process, BoxModel, BoxOrder, BoxOrderDetail, ProductionOrder
 
 @admin.register(Process)
 class ProcessAdmin(admin.ModelAdmin):
-	list_display = ('name',)
+	list_display = ('name', 'queue')
 
 
 @admin.register(TypeWork)
@@ -85,7 +86,9 @@ class BoxOrderDetailAdmin(admin.ModelAdmin):
 
 @admin.register(ProductionOrder)
 class ProductionOrderAdmin(admin.ModelAdmin):
-	list_display = ['box_order_detail', 'shipping_date', 'amount']
+	search_fields = ('code',)
+	list_display = ['code', 'box_order_detail', 'shipping_date', 'amount']
+	inlines = [OutgoingInline]
 
 
 def display_box_order_details(self, obj):

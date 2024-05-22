@@ -2,11 +2,22 @@ from django.contrib import admin
 from apps.depo.models import stock, incoming, outgoing
 
 
+class OutgoingMaterialInline(admin.TabularInline):
+	model = outgoing.OutgoingMaterial
+	extra = 0
+
+
+class OutgoingInline(admin.TabularInline):
+	model = outgoing.Outgoing
+	extra = 0
+
+
 @admin.register(outgoing.Outgoing)
 class OutgoingAdmin(admin.ModelAdmin):
 	list_display = ('code', 'warehouse', 'to_warehouse', 'outgoing_type', 'data',)
 	list_filter = ('outgoing_type', 'warehouse',)
 	readonly_fields = ('outgoing_type', 'code', 'status', 'created_time', 'updated_time')
+	inlines = [OutgoingMaterialInline]
 
 	search_fields = ('code',)
 	fields = (

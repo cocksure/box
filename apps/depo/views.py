@@ -38,15 +38,6 @@ class StockListView(BaseListView):
 		queryset = Stock.objects.all()
 		warehouse_id = request.GET.get('warehouse_id')
 
-		# search_query = request.GET.get('search')
-		# if search_query:
-		# 	search_query = search_query.strip()
-		# 	# Получаем объект материала по названию
-		# 	material = Material.objects.filter(name__icontains=search_query).first()
-		# 	if material:
-		# 		# Если материал найден, фильтруем Stock по нему
-		# 		queryset = queryset.filter(material=material)
-
 		if warehouse_id:
 			queryset = queryset.filter(warehouse_id=warehouse_id)
 			selected_warehouse_id = warehouse_id
@@ -60,7 +51,7 @@ class StockListView(BaseListView):
 		context = {
 			'items': page_obj,
 			'warehouses': warehouses,
-			'selected_warehouse_id': selected_warehouse_id,  # Передаем выбранный склад в контекст
+			'selected_warehouse_id': selected_warehouse_id,
 
 		}
 		return render(request, self.template_name, context)

@@ -8,6 +8,7 @@ from apps.users.models import CustomUser
 
 class Process(models.Model):
 	name = models.CharField(max_length=100, unique=True, verbose_name="Название")
+	queue = models.PositiveIntegerField(verbose_name="Очеред", blank=True, null=True, default=None)
 
 	def __str__(self):
 		return self.name
@@ -138,27 +139,35 @@ class BoxOrderDetail(models.Model):
 		verbose_name_plural = "Детали заказов коробок"
 
 
-class ProductionOrder(models.Model):
-	box_order_detail = models.ForeignKey(
-		BoxOrderDetail,
-		on_delete=models.CASCADE,
-		related_name='production_orders',
-		blank=True,
-		null=True,
-		verbose_name="Детали заказа коробки"
-	)
+class ProductionOrder(BaseModel):
+	class ProductionOrderStatus(models.TextChoices):
+		IN_PROGRESS = 'В работе', 'В работе'
+		COMPLETED = 'ЗАКОНЧЕНО', 'ЗАКОНЧЕНО'
+		NOT_STARTED = 'НОВАЯ', 'НОВАЯ'
+
+	code = models.CharField(max_length=20, unique=True, blank=True, verbose_name="Код")
+	box_order_detail = models.ForeignKey(BoxOrderDetail, on_delete=models.CASCADE, related_name='production_orders',
+										 blank=True, null=True, verbose_name="Детали заказа коробки")
 	shipping_date = models.DateField(verbose_name="Дата доставки", null=True, blank=True)
 	amount = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Количество")
-
-	status_choices = (
-		('in_progress', 'In Progress'),
-		('completed', 'Completed'),
-		('not_started', 'Not Started'),
-	)
-	status = models.CharField(max_length=20, choices=status_choices, null=True, blank=True, default='not_started',
-							  verbose_name="Статус")
+	status = models.CharField(max_length=20, choices=ProductionOrderStatus.choices,
+							  default=ProductionOrderStatus.NOT_STARTED, verbose_name="Статус")
 	type_of_work = models.ForeignKey(TypeWork, on_delete=models.SET_NULL, null=True, verbose_name="Тип Работы")
+
+	def save(self, *args, **kwargs):
+		if not self.code:
+			last_order = ProductionOrder.objects.all().order_by('id').last()
+			if last_order:
+				last_id = last_order.id
+				self.code = f'BOX{last_id + 1:010d}'
+			else:
+				self.code = 'BOX0000000001'
+
+		super().save(*args, **kwargs)
 
 	class Meta:
 		verbose_name = "Производственный заказ"
 		verbose_name_plural = "Производственные заказы"
+
+	def __str__(self):
+		return self.code
