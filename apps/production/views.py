@@ -211,7 +211,7 @@ class ProductionOrderListView(BaseListView):
 		if status and status != "all":
 			production_orders = production_orders.filter(status=status)
 
-		page_obj = self.apply_pagination_and_search(production_orders, request)
+		page_obj = self.apply_pagination_and_search_by_code(production_orders, request)
 
 		context = {
 			'items': page_obj,
@@ -301,7 +301,7 @@ class ProcessLogListView(BaseListView):
 			order_process_status.setdefault(log.production_order.id, {})
 			order_process_status[log.production_order.id][log.process.id] = True
 
-		page_obj = self.apply_pagination_and_search(logs, self.request)
+		page_obj = self.apply_pagination_and_search_by_code(logs, self.request)
 
 		context.update({
 			'form': self.form,
