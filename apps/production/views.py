@@ -10,9 +10,9 @@ from django.views.generic import CreateView, DetailView
 from apps.depo.models.outgoing import Outgoing, OutgoingMaterial
 from apps.depo.models.stock import Stock
 from apps.info.models import Warehouse
-from apps.production.forms import BoxModelForm, BoxOrderForm, BoxOrderDetailFormSet, BoxOrderDetailForm, \
-	ProductionOrderForm
-from apps.production.models import BoxModel, BoxOrder, BoxOrderDetail, ProductionOrder, TypeWork
+from apps.production.forms import BoxModelForm, BoxOrderForm, BoxOrderDetailFormSet, ProductionOrderForm, \
+	ProcessLogForm, ProcessLogFilterForm
+from apps.production.models import BoxModel, BoxOrder, BoxOrderDetail, ProductionOrder, ProcessLog, Process
 from django.http import JsonResponse, HttpResponseRedirect
 from django.db import transaction
 
@@ -219,3 +219,98 @@ class ProductionOrderListView(BaseListView):
 			'selected_status': status,
 		}
 		return render(request, "production/production_order_list.html", context)
+
+
+def process_log_view(request):
+	if request.method == 'POST':
+		form = ProcessLogForm(request.POST)
+		if form.is_valid():
+			code = form.cleaned_data['production_order_code']
+			try:
+				production_order = ProductionOrder.objects.get(code=code)
+
+				# Получаем тип работы и процессы в порядке очереди
+				type_of_work = production_order.type_of_work
+				processes = type_of_work.process.order_by('queue')
+
+				# Найдем следующий процесс
+				completed_processes = ProcessLog.objects.filter(production_order=production_order).values_list(
+					'process', flat=True)
+				next_process = processes.exclude(id__in=completed_processes).first()
+
+				if next_process:
+					# Создаем запись в журнале процесса
+					ProcessLog.objects.create(production_order=production_order, process=next_process)
+					messages.success(request,
+									 f'Процесс "{next_process.name}" отмечен как выполненный для заказа {code}.')
+
+					# Обновляем статус ProductionOrder
+					if next_process.queue == processes.first().queue:
+						production_order.status = production_order.ProductionOrderStatus.IN_PROGRESS
+					elif next_process.queue == processes.last().queue:
+						production_order.status = production_order.ProductionOrderStatus.COMPLETED
+
+					production_order.save()
+				else:
+					messages.info(request, 'Все процессы для этого заказа уже выполнены.')
+
+				return redirect('production:process_log')
+			except ProductionOrder.DoesNotExist:
+				messages.error(request, 'Заказ с таким кодом не найден.')
+	else:
+		form = ProcessLogForm()
+
+	return render(request, 'production/process_log.html', {'form': form})
+
+
+class ProcessLogListView(BaseListView):
+	model = ProcessLog
+	form_class = ProcessLogFilterForm
+	template_name = 'production/process_log_list.html'
+
+	def get_queryset(self):
+		form = self.form_class(self.request.GET or None)
+		logs = ProcessLog.objects.select_related('production_order', 'process')
+
+		if form.is_valid():
+			process = form.cleaned_data.get('process')
+			status = form.cleaned_data.get('status')
+			start_date = form.cleaned_data.get('start_date')
+			end_date = form.cleaned_data.get('end_date')
+
+			if process:
+				logs = logs.filter(process=process)
+			if status and status != 'all':
+				logs = logs.filter(production_order__status=status)
+			if start_date:
+				logs = logs.filter(timestamp__gte=start_date)
+			if end_date:
+				logs = logs.filter(timestamp__lte=end_date)
+
+		self.form = form
+		return logs
+
+	def get_context_data(self, **kwargs):
+		context = super().get_context_data(**kwargs)
+		processes = Process.objects.all()
+		logs = self.get_queryset()
+
+		# Создаем словарь для хранения информации о процессах для каждого заказа
+		order_process_status = {}
+		for log in logs:
+			order_process_status.setdefault(log.production_order.id, {})
+			order_process_status[log.production_order.id][log.process.id] = True
+
+		page_obj = self.apply_pagination_and_search(logs, self.request)
+
+		context.update({
+			'form': self.form,
+			'processes': processes,
+			'items': page_obj,
+			'order_process_status': order_process_status,
+		})
+		return context
+
+	def get(self, request, *args, **kwargs):
+		context = self.get_context_data()
+		return render(request, self.template_name, context)

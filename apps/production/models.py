@@ -171,3 +171,17 @@ class ProductionOrder(BaseModel):
 
 	def __str__(self):
 		return self.code
+
+
+class ProcessLog(models.Model):
+	production_order = models.ForeignKey(ProductionOrder, on_delete=models.CASCADE, related_name='process_logs',
+										 verbose_name="Заказ на производство")
+	process = models.ForeignKey(Process, on_delete=models.CASCADE, verbose_name="Процесс")
+	timestamp = models.DateTimeField(auto_now_add=True, verbose_name="Временная метка")
+
+	class Meta:
+		verbose_name = "Процесс производства"
+		verbose_name_plural = "Процессы производства"
+
+	def __str__(self):
+		return f"Процесс для заказа {self.production_order.code}: {self.process.name}"

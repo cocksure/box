@@ -1,5 +1,7 @@
 from django.contrib import admin
-from .models import Process, BoxModel, BoxOrder, BoxOrderDetail, ProductionOrder, TypeWork
+
+from .forms import ProductionOrderForm, ProcessLogForm
+from .models import Process, BoxModel, BoxOrder, BoxOrderDetail, ProductionOrder, TypeWork, ProcessLog
 from ..depo.admin import OutgoingInline
 
 
@@ -93,3 +95,11 @@ class ProductionOrderAdmin(admin.ModelAdmin):
 
 def display_box_order_details(self, obj):
 	return ", ".join([str(box_order_detail) for box_order_detail in obj.box_order_detail.all()])
+
+
+@admin.register(ProcessLog)
+class ProcessLogAdmin(admin.ModelAdmin):
+	list_display = ['production_order', 'process', 'timestamp']
+	search_fields = ['production_order__code', 'process__name']
+	list_filter = ['process', 'timestamp']
+	ordering = ['-timestamp']

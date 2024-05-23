@@ -31,6 +31,11 @@ class BaseListView(View):
 	def get_redirect_url(self):
 		return self.redirect_url
 
+	def get_context_data(self, **kwargs):
+		context = {}
+		context.update(kwargs)
+		return context
+
 	def get(self, request):
 		items = self.get_queryset()
 		page_obj = self.apply_pagination_and_search(items, request)

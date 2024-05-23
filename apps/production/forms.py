@@ -1,7 +1,7 @@
 from django.forms import inlineformset_factory
 from django import forms
 from apps.info.models import Material, BoxSize, BoxType, Firm
-from apps.production.models import BoxModel, ProductionOrder
+from apps.production.models import BoxModel, ProductionOrder, ProcessLog, Process
 from .models import BoxOrder, BoxOrderDetail
 
 
@@ -88,3 +88,22 @@ class ProductionOrderForm(forms.ModelForm):
 			'shipping_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date', }),
 			'type_of_work': forms.Select(attrs={'class': 'form-select'}),
 		}
+
+
+class ProcessLogForm(forms.Form):
+	production_order_code = forms.CharField(
+		max_length=20,
+		label='Код заказа на производство',
+		widget=forms.TextInput(attrs={'class': 'form-control'})
+	)
+
+
+class ProcessLogFilterForm(forms.Form):
+	process = forms.ModelChoiceField(queryset=Process.objects.all(), required=False, label='Процесс',
+									 widget=forms.Select(attrs={'class': 'form-select'}))
+	status = forms.ChoiceField(choices=[('all', 'Все')] + ProductionOrder.ProductionOrderStatus.choices, required=False,
+							   label='Статус', widget=forms.Select(attrs={'class': 'form-select'}))
+	start_date = forms.DateField(required=False, label='Дата начала',
+								 widget=forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}))
+	end_date = forms.DateField(required=False, label='Дата окончания',
+							   widget=forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}))
