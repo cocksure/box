@@ -1,0 +1,102 @@
+{% load custom_filters %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Рабочий лист: #{{ order.id }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #fff;
+            color: #333;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            color: #333;
+        }
+
+        .header img {
+            max-width: 150px;
+        }
+
+        .details h4 {
+            margin: 5px 0;
+            font-size: 18px;
+        }
+
+        .process-table {
+            width: 100%;
+            margin-top: 20px;
+            border-collapse: collapse;
+            border: 1px solid #ccc;
+        }
+
+        .process-table th, .process-table td {
+            padding: 10px;
+            border: 1px solid #ccc;
+            text-align: left;
+        }
+
+        .process-table th {
+            background-color: #f5f5f5;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>Рабочий лист: ID {{ order.id }}</h1>
+        <img src="data:image/png;base64,{{ qr_code_data|b64encode }}" alt="QR-код"><br>
+
+    </div>
+    <div class="details">
+        <h4>Код: {{ order.code }}</h4>
+        <h4>Детали заказа коробки: {{ order.box_order_detail }}</h4>
+        <h4>Дата доставки: {{ order.shipping_date }}</h4>
+        <h4>Количество: {{ order.amount }}</h4>
+        <h4>Статус: {{ order.status }}</h4>
+        <h4>Тип работы: {{ order.type_of_work }}</h4>
+    </div>
+    <table class="process-table">
+        <thead>
+        <tr>
+            <th>Процесс</th>
+            <th>Статус</th>
+            <th>Комментарий</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for process in order.processes.all %}
+            <tr>
+                <td>{{ process.name }}</td>
+                <td>{{ process.status }}</td>
+                <td>{{ process.comment }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+</body>
+</html>

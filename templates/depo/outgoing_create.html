@@ -136,10 +136,15 @@
         document.addEventListener('DOMContentLoaded', function () {
             let detailCounter = 1;
 
-            document.getElementById('addDetailBtn').addEventListener('click', function () {
+            function addDetail() {
                 let outgoingMaterial = document.getElementById('outgoing_material').value;
                 let outgoingAmount = document.getElementById('outgoing_amount').value;
                 let outgoingComment = document.getElementById('outgoing_comment').value;
+
+                if (!outgoingMaterial || !outgoingAmount) {
+                    alert('Пожалуйста, заполните все поля.');
+                    return;
+                }
 
                 let materialFieldName = 'outgoing_material_' + detailCounter;
                 let amountFieldName = 'outgoing_amount_' + detailCounter;
@@ -213,8 +218,16 @@
                 } else {
                     console.log('Fields already exist for this detail'); // Отладочный вывод
                 }
-            });
+            }
 
+            document.getElementById('addDetailBtn').addEventListener('click', addDetail);
+
+            document.getElementById('myModalCreateForm').addEventListener('keydown', function (event) {
+                if (event.key === 'Enter') {
+                    event.preventDefault();  // предотвращаем стандартное поведение клавиши Enter
+                    addDetail();
+                }
+            });
 
             document.getElementById('id_form').addEventListener('submit', function (event) {
                 event.preventDefault();

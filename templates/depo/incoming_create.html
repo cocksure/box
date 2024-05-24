@@ -108,10 +108,15 @@
         document.addEventListener('DOMContentLoaded', function () {
             let detailCounter = 1;
 
-            document.getElementById('addDetailBtn').addEventListener('click', function () {
+            function addDetail() {
                 let incomingMaterial = document.getElementById('incoming_material').value;
                 let incomingAmount = document.getElementById('incoming_amount').value;
                 let incomingComment = document.getElementById('incoming_comment').value;
+
+                if (!incomingMaterial || !incomingAmount) {
+                    alert('Пожалуйста, заполните все поля.');
+                    return;
+                }
 
                 let materialFieldName = 'incoming_material_' + detailCounter;
                 let amountFieldName = 'incoming_amount_' + detailCounter;
@@ -174,7 +179,6 @@
                         });
                     });
 
-
                     document.getElementById('incoming_material').value = '';
                     document.getElementById('incoming_amount').value = '';
                     document.getElementById('incoming_comment').value = '';
@@ -186,9 +190,17 @@
                 } else {
                     console.log('Fields already exist for this detail'); // Отладочный вывод
                 }
+            }
+
+            document.getElementById('addDetailBtn').addEventListener('click', addDetail);
+
+            document.getElementById('myModalCreateForm').addEventListener('keydown', function (event) {
+                if (event.key === 'Enter') {
+                    event.preventDefault();  // предотвращаем стандартное поведение клавиши Enter
+                    addDetail();
+                }
             });
-            
-            
+
             document.getElementById('id_form').addEventListener('submit', function (event) {
                 event.preventDefault();
 
@@ -219,8 +231,6 @@
                         console.error('Error:', error);
                     });
             });
-
         });
-
     </script>
 {% endblock %}

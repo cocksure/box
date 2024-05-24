@@ -2,10 +2,12 @@ from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import render, redirect
 from django.shortcuts import get_object_or_404
+from django.template.loader import render_to_string
 from django.urls import reverse_lazy
 from django.utils import timezone
 from django.views import View
 from django.views.generic import CreateView, DetailView
+from weasyprint import HTML
 
 from apps.depo.models.outgoing import Outgoing, OutgoingMaterial
 from apps.depo.models.stock import Stock
@@ -13,9 +15,10 @@ from apps.info.models import Warehouse
 from apps.production.forms import BoxModelForm, BoxOrderForm, BoxOrderDetailFormSet, ProductionOrderForm, \
 	ProcessLogForm, ProcessLogFilterForm
 from apps.production.models import BoxModel, BoxOrder, BoxOrderDetail, ProductionOrder, ProcessLog, Process
-from django.http import JsonResponse, HttpResponseRedirect
+from django.http import JsonResponse, HttpResponseRedirect, HttpResponse
 from django.db import transaction
 
+from apps.shared.utils import generate_qr_code
 from apps.shared.views import BaseListCreateView, BaseListView
 
 
@@ -314,3 +317,31 @@ class ProcessLogListView(BaseListView):
 	def get(self, request, *args, **kwargs):
 		context = self.get_context_data()
 		return render(request, self.template_name, context)
+
+
+def generate_box_order_pdf(request, order_id):
+	order = get_object_or_404(BoxOrder, id=order_id)
+	html_string = render_to_string('pdf/box_order_pdf.html', {'order': order})
+	html = HTML(string=html_string)
+	pdf = html.write_pdf()
+
+	response = HttpResponse(pdf, content_type='application/pdf')
+	response['Content-Disposition'] = f'attachment; filename="box_order_{order_id}.pdf"'
+	return response
+
+
+def generate_production_order_pdf(request, production_order_id):
+	production_order = get_object_or_404(ProductionOrder, id=production_order_id)
+
+	qr_code_data = generate_qr_code(production_order.code)
+
+	html_string = render_to_string('pdf/production_order_pdf.html',
+								   {'order': production_order, 'qr_code_data': qr_code_data})
+
+	html = HTML(string=html_string)
+	pdf = html.write_pdf()
+
+	response = HttpResponse(pdf, content_type='application/pdf')
+	response['Content-Disposition'] = f'attachment; filename="production_order_{production_order}.pdf"'
+
+	return response

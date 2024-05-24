@@ -1,6 +1,8 @@
 from collections import OrderedDict
 from django.http import JsonResponse
 from django.core.paginator import Paginator
+import qrcode
+from io import BytesIO
 
 
 class CustomPagination:
@@ -22,3 +24,24 @@ class CustomPagination:
 			('previous', paginated_queryset.previous_page_number() if paginated_queryset.has_previous() else None),
 			('results', list(paginated_queryset))
 		]))
+
+
+def generate_qr_code(data):
+	if not data:
+		return None
+
+	qr = qrcode.QRCode(
+		version=1,
+		error_correction=qrcode.constants.ERROR_CORRECT_L,
+		box_size=10,
+		border=4,
+	)
+	qr.add_data(data)
+	qr.make(fit=True)
+
+	img = qr.make_image(fill_color="black", back_color="white")
+	buffer = BytesIO()
+	img.save(buffer, format="PNG")
+	qr_code_data = buffer.getvalue()
+
+	return qr_code_data

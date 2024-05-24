@@ -36,38 +36,38 @@
                             </div>
                         </form>
                         <hr>
-
-                        <table class="table table-bordered table-striped text-center">
-                            <thead>
-                            <tr class="">
-                                <th>Код заказа</th>
-                                <th>Заказчик</th>
-                                <th>Покупатель</th>
-                                {% for process in processes %}
-                                    <th>{{ process.name }}</th>
-                                {% endfor %}
-                            </tr>
-                            </thead>
-                            <tbody>
-                            {% for log in items %}
-                                <tr>
-                                    <td>{{ log.production_order.code }}</td>
-                                    <td>{{ log.production_order.box_order_detail.box_order.customer }}</td>
-                                    <td>{{ log.production_order.box_order_detail.box_order.customer }}</td>
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-striped text-center">
+                                <thead>
+                                <tr class="">
+                                    <th>Код заказа</th>
+                                    <th>Заказчик</th>
+                                    <th>Покупатель</th>
                                     {% for process in processes %}
-                                        <td>
-                                            {% if order_process_status|get_item:log.production_order.id|get_item:process.id %}
-                                                ✔
-                                            {% else %}
-                                                ❌
-                                            {% endif %}
-                                        </td>
+                                        <th>{{ process.name }}</th>
                                     {% endfor %}
                                 </tr>
-                            {% endfor %}
-                            </tbody>
-                        </table>
-
+                                </thead>
+                                <tbody>
+                                {% for log in items %}
+                                    <tr>
+                                        <td>{{ log.production_order.code }}</td>
+                                        <td>{{ log.production_order.box_order_detail.box_order.customer }}</td>
+                                        <td>{{ log.production_order.box_order_detail.box_order.customer }}</td>
+                                        {% for process in processes %}
+                                            <td>
+                                                {% if order_process_status|get_item:log.production_order.id|get_item:process.id %}
+                                                    ✔
+                                                {% else %}
+                                                    ❌
+                                                {% endif %}
+                                            </td>
+                                        {% endfor %}
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
                         <!-- Pagination start -->
                         {% include 'pagination.html' with items=items %}
                         <!-- Pagination end -->

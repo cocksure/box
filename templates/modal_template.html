@@ -25,5 +25,12 @@
 
             modal.find('#myModalCreateForm').attr('action', actionUrl);
         });
+
+        $('#myModalCreateForm').on('keydown', function (event) {
+            if (event.key === 'Enter') {
+                event.preventDefault(); // предотвращаем стандартное поведение клавиши Enter
+                $(this).submit(); // отправляем форму
+            }
+        });
     });
 </script>

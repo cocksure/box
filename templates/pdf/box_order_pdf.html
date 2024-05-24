@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Box Order #{{ order.id }}</title>
+
+    <style>
+       body {
+            width: 100%;
+            margin: 0;
+            padding: 10px; 
+            background-color: #fff;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            
+        }
+
+        h1, h4 {
+            color: #343a40;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        h2 {
+            color: #343a40;
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        table {
+            width: 100%;
+            text-align: left;
+            border-collapse: separate;
+            border-spacing: 5px;
+            background: #ECE9E0;
+            color: #656665;
+            border: 16px solid #ECE9E0;
+            border-radius: 10px;
+        }
+
+        th {
+            font-size: 18px;
+            padding: 10px;
+            background: #F5D7BF;
+            border-radius: 5px;
+            text-align: center;
+
+        }
+
+        td {
+            background: #F5D7BF;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+
+        }
+        .container {
+            margin: 0;
+            padding: 0;
+        }
+
+        @page {
+            size: landscape;
+            margin: 12mm;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>№ Заказа: {{ order.id }}</h1>
+    <h4>Заказчик: {{ order.customer }}</h4>
+    <h4>Тип заказа: {{ order.type_order }}</h4>
+    <h4>Спецификация: {{ order.specification }}</h4>
+    <h4>Менеджер: {{ order.manager }}</h4>
+    <h4>Статус заказ: {{ order.status }}</h4>
+    <h4>Дата: {{ order.data }}</h4>
+
+    <table>
+        <thead>
+        <tr>
+            <th>Модель коробки</th>
+            <th>Материал заказа</th>
+            <th>Размер коробки</th>
+            <th>Тип коробки</th>
+            <th>Цвет</th>
+
+            <th>Количество заказа</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for detail in order.boxorderdetail_set.all %}
+            <tr>
+                <td>{{ detail.box_model }}</td>
+                <td>{{ detail.box_model.material.name }}</td>
+                <td>{{ detail.box_model.box_size.name }}</td>
+                <td>{{ detail.box_model.box_type.name }}</td>
+                <td>{{ detail.box_model.color }}</td>
+                <td>{{ detail.amount }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+</body>
+</html>

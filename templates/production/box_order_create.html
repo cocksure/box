@@ -110,30 +110,30 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            let orderId;
-            let detailCounter = 1; // Счетчик для номера добавленной детали
+            let detailCounter = 1;
 
-            document.getElementById('addDetailBtn').addEventListener('click', function () {
+            function addDetail() {
                 let boxModel = document.getElementById('box_model').value;
                 let amount = document.getElementById('amount').value;
 
+                if (!boxModel || !amount) {
+                    alert('Пожалуйста, заполните все поля.');
+                    return;
+                }
 
                 let boxModelFieldName = 'box_model_' + detailCounter;
                 let amountFieldName = 'amount_' + detailCounter;
 
-                // Проверяем, существует ли уже скрытое поле для текущей детали заказа
                 let existingBoxModelField = document.getElementById(boxModelFieldName);
                 let existingAmountField = document.getElementById(amountFieldName);
 
                 if (!existingBoxModelField && !existingAmountField) {
-                    // Если скрытых полей для текущей детали заказа нет, то добавляем их
                     let boxModelField = '<input type="hidden" name="' + boxModelFieldName + '" class="box_model" value="' + boxModel + '">';
                     let amountField = '<input type="hidden" name="' + amountFieldName + '" class="amount" value="' + amount + '">';
 
                     document.getElementById('id_form').insertAdjacentHTML('beforeend', boxModelField);
                     document.getElementById('id_form').insertAdjacentHTML('beforeend', amountField);
 
-                    // Добавляем строку в таблицу для отображения деталей заказа
                     let newRow = '<tr>' +
                         '<td>' + boxModel + '</td>' +
                         '<td>' + amount + '</td>' +
@@ -144,65 +144,61 @@
 
                     document.getElementById('order_details_table').insertAdjacentHTML('beforeend', newRow);
 
-                    // Добавьте обработчик события для кнопки "Удалить"
                     document.querySelectorAll('.delete-btn').forEach(function (button) {
                         button.addEventListener('click', function () {
                             let row = button.closest('tr');
                             row.remove();
 
-                            // Получаем данные из ячеек строки таблицы, которую мы удаляем
                             let boxModel = row.cells[0].textContent;
                             let amount = row.cells[1].textContent;
 
-                            // Получаем скрытые поля из формы
                             let hiddenBoxModelFields = document.querySelectorAll('input[name^="box_model_"]');
                             let hiddenAmountFields = document.querySelectorAll('input[name^="amount_"]');
 
-                            // Проходим по всем скрытым полям и ищем соответствующие данные
                             hiddenBoxModelFields.forEach(function (field) {
                                 if (field.value === boxModel) {
-                                    // Если находим соответствие, удаляем это скрытое поле из формы
                                     field.remove();
                                 }
                             });
 
                             hiddenAmountFields.forEach(function (field) {
                                 if (field.value === amount) {
-                                    // Если находим соответствие, удаляем это скрытое поле из формы
                                     field.remove();
                                 }
                             });
                         });
                     });
 
-
-                    // Сбрасываем значения полей
                     document.getElementById('box_model').value = '';
                     document.getElementById('amount').value = '';
 
-                    // Закрываем модальное окно
                     $('#myModalCreate').modal('hide');
 
-                    // Увеличиваем счетчик для следующей добавленной детали
                     detailCounter++;
                 } else {
-                    console.log('Fields already exist for this detail'); // Отладочный вывод
+                    console.log('Fields already exist for this detail');
+                }
+            }
+
+            document.getElementById('addDetailBtn').addEventListener('click', addDetail);
+
+            document.getElementById('myModalCreateForm').addEventListener('keydown', function (event) {
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                    addDetail();
                 }
             });
-            
 
             document.getElementById('id_form').addEventListener('submit', function (event) {
                 event.preventDefault();
 
                 document.getElementById('detail_counter').value = detailCounter;
 
-
                 let formData = new FormData(this);
                 let orderDetails = document.querySelectorAll('.box_model, .amount');
 
-                // Loop through each detail field and append its data to the formData
-                orderDetails.forEach(function (material) {
-                    formData.append(material.name, material.value);
+                orderDetails.forEach(function (detail) {
+                    formData.append(detail.name, detail.value);
                 });
 
                 fetch('{% url "production:box-order-create" %}', {
@@ -223,9 +219,7 @@
                         console.error('Error:', error);
                     });
             });
-
         });
-
     </script>
 
 

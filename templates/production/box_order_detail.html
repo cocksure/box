@@ -137,11 +137,21 @@
         document.addEventListener('DOMContentLoaded', function () {
             const modal = document.getElementById('myModalCreate');
             const inputDetailId = document.getElementById('boxOrderDetailId');
-            modal.addEventListener('show.bs.modal', function (event) {
-                const button = event.relatedTarget;
-                const detailId = button.getAttribute('data-detail-id');
-                inputDetailId.value = detailId;
-            });
+
+            if (modal && inputDetailId) {
+                modal.addEventListener('show.bs.modal', function (event) {
+                    const button = event.relatedTarget;
+                    if (button) {
+                        const detailId = button.getAttribute('data-detail-id');
+                        if (detailId) {
+                            inputDetailId.value = detailId;
+                        }
+                    }
+                });
+            } else {
+                console.error('Modal or input element not found');
+            }
         });
     </script>
+
 {% endblock %}
