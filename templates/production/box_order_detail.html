@@ -98,7 +98,11 @@
                                     <th scope="col">Материал</th>
                                     <th scope="col">Размер</th>
                                     <th scope="col">Количество</th>
-                                    <th scope="col">Действия</th>
+                                    {% if request.user.is_authenticated and box_order.status == 'Одобрено' %}
+
+                                        <th scope="col">Действия</th>
+                                    {% endif %}
+
                                 </tr>
                                 </thead>
                                 <tbody id="order_details_table">
@@ -109,14 +113,16 @@
                                         <td>{{ detail.box_model.material }}</td>
                                         <td>{{ detail.box_model.box_size }}</td>
                                         <td>{{ detail.amount }}</td>
-                                        <td>
-                                            <button type="button" class="btn btn-primary openCreateModalBtn"
-                                                    data-bs-toggle="modal"
-                                                    data-bs-target="#myModalCreate"
-                                                    data-detail-id="{{ detail.id }}">
-                                                <i class="fa fa-list"></i>
-                                            </button>
-                                        </td>
+                                        {% if request.user.is_authenticated and box_order.status == 'Одобрено' %}
+                                            <td>
+                                                <button type="button" class="btn btn-primary openCreateModalBtn"
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#myModalCreate"
+                                                        data-detail-id="{{ detail.id }}">
+                                                    <i class="fa fa-list"></i>
+                                                </button>
+                                            </td>
+                                        {% endif %}
                                     </tr>
                                 {% endfor %}
                                 </tbody>

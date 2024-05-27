@@ -144,12 +144,14 @@ class ProductionOrder(BaseModel):
 		IN_PROGRESS = 'В работе', 'В работе'
 		COMPLETED = 'ЗАКОНЧЕНО', 'ЗАКОНЧЕНО'
 		NOT_STARTED = 'НОВАЯ', 'НОВАЯ'
+		PACKED = 'Упаковано', 'Упаковано'
 
 	code = models.CharField(max_length=20, unique=True, blank=True, verbose_name="Код")
 	box_order_detail = models.ForeignKey(BoxOrderDetail, on_delete=models.CASCADE, related_name='production_orders',
 										 blank=True, null=True, verbose_name="Детали заказа коробки")
 	shipping_date = models.DateField(verbose_name="Дата доставки", null=True, blank=True)
 	amount = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Количество")
+	packed_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name="Количество упаковано")
 	status = models.CharField(max_length=20, choices=ProductionOrderStatus.choices,
 							  default=ProductionOrderStatus.NOT_STARTED, verbose_name="Статус")
 	type_of_work = models.ForeignKey(TypeWork, on_delete=models.SET_NULL, null=True, verbose_name="Тип Работы")

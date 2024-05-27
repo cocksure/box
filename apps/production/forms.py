@@ -98,6 +98,20 @@ class ProcessLogForm(forms.Form):
 	)
 
 
+class PackagingForm(forms.Form):
+	production_order_code = forms.CharField(
+		label='Код или ID заказа на производство',
+		max_length=20,
+		widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Введите код или ID заказа'})
+	)
+	packed_amount = forms.DecimalField(
+		label='Количество упаковано',
+		max_digits=10,
+		decimal_places=2,
+		widget=forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Введите количество'})
+	)
+
+
 class ProcessLogFilterForm(forms.Form):
 	process = forms.ModelChoiceField(queryset=Process.objects.all(), required=False, label='Процесс',
 									 widget=forms.Select(attrs={'class': 'form-select'}))

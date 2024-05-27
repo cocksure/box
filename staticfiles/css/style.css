@@ -132,7 +132,7 @@
 }
 
 .active {
-    background-color: #d4ebf2;
+    background-color: lightgray;
     border-radius: 7px;
 }
 
@@ -297,7 +297,16 @@
     border-color: var(--primary);
 }
 
+.pagination .page-item.active .page-link {
+    background-color: whitesmoke;
+    border-color: var(--primary);
+    color: black;
+}
 
+.pagination .page-item .page-link {
+    background-color: #6f00ff;
+    color: white;
+}
 
 
 
