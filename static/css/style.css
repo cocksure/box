@@ -308,5 +308,14 @@
     color: white;
 }
 
+.logo {
+    width: 60%;
+}
+
+@media (max-width: 768px) {
+    .logo {
+        display: none;
+    }
+}
 
 
