@@ -9,7 +9,7 @@ class BoxModelForm(forms.ModelForm):
 	class Meta:
 		model = BoxModel
 		fields = ['name', 'material', 'box_size', 'box_type', 'closure_type', 'additional_properties', 'max_load',
-				  'color', 'comment', 'photo']
+				  'color', 'grams_per_box', 'comment', 'photo']
 		labels = {
 			'name': '',
 			'closure_type': 'Тип замыкания',
@@ -28,8 +28,10 @@ class BoxModelForm(forms.ModelForm):
 			'max_load': forms.NumberInput(
 				attrs={'class': 'form-control mb-2', 'placeholder': 'Введите максимальную нагрузку'}),
 			'color': forms.TextInput(attrs={'class': 'form-control mb-3', 'placeholder': 'Введите цвет'}),
+			'grams_per_box': forms.NumberInput(
+				attrs={'class': 'form-control mb-2', 'placeholder': 'Грамм на одну коробку'}),
 			'comment': forms.Textarea(
-				attrs={'class': 'form-control mb-2', 'rows': 5, 'placeholder': 'Введите комментарий'}),
+				attrs={'class': 'form-control mb-2', 'rows': 3, 'placeholder': 'Введите комментарий'}),
 			'photo': forms.ClearableFileInput(attrs={'class': 'form-control mb-3', 'id': 'photo', 'name': 'photo'})
 		}
 

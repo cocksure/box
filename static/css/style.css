@@ -318,4 +318,16 @@
     }
 }
 
+.status-new {
+    color: orange;
+    font-weight: bold;
+}
+
+.status-in-progress {
+    color: mediumseagreen;
+    font-weight: bold;
+
+}
+
+
 

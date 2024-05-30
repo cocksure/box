@@ -37,9 +37,9 @@
                         </form>
                         <hr>
                         <div class="table-responsive">
-                            <table class="table table-bordered table-striped text-center">
+                            <table class="table table-bordered table-light table-striped text-center">
                                 <thead>
-                                <tr class="">
+                                <tr>
                                     <th>Код заказа</th>
                                     <th>Заказчик</th>
                                     <th>Покупатель</th>
@@ -49,14 +49,14 @@
                                 </tr>
                                 </thead>
                                 <tbody>
-                                {% for log in items %}
+                                {% for production_order in production_orders %}
                                     <tr>
-                                        <td>{{ log.production_order.code }}</td>
-                                        <td>{{ log.production_order.box_order_detail.box_order.customer }}</td>
-                                        <td>{{ log.production_order.box_order_detail.box_order.customer }}</td>
+                                        <td>{{ production_order.code }}</td>
+                                        <td>{{ production_order.box_order_detail.box_order.customer }}</td>
+                                        <td>{{ production_order.box_order_detail.box_order.customer }}</td>
                                         {% for process in processes %}
                                             <td>
-                                                {% if order_process_status|get_item:log.production_order.id|get_item:process.id %}
+                                                {% if order_process_status|get_item:production_order.id|get_item:process.id %}
                                                     ✔
                                                 {% else %}
                                                     ❌
@@ -69,7 +69,7 @@
                             </table>
                         </div>
                         <!-- Pagination start -->
-                        {% include 'pagination.html' with items=items %}
+                        {% include 'base/pagination.html' with items=items %}
                         <!-- Pagination end -->
 
                     </div>

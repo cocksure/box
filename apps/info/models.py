@@ -37,7 +37,7 @@ class Material(BaseModel):
 	brand = models.ForeignKey('Brand', on_delete=models.SET_NULL, null=True, verbose_name="Бренд")
 	material_type = models.ForeignKey(MaterialType, on_delete=models.CASCADE, max_length=100,
 									  verbose_name="Тип материала")
-	material_thickness = models.FloatField(verbose_name="Толщина материала")
+	material_thickness = models.FloatField(verbose_name="Плотность(Г/м2)")
 	unit_of_measurement = models.CharField(max_length=10, choices=UNIT_CHOICES, default=None,
 										   verbose_name="Единица измерения")
 	photo = models.ImageField(

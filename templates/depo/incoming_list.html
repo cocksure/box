@@ -4,67 +4,67 @@
 
 {% block content %}
     <div class="container-fluid pt-4 px-4">
-    <div class="row g-4">
-        <div class="col-sm-12">
-            <div class="bg-light rounded h-100 p-4">
-                <h6 class="mb-4">Список приходов</h6>
-                <hr>
+        <div class="row g-4">
+            <div class="col-sm-12">
+                <div class="bg-light rounded h-100 p-4">
+                    <h6 class="mb-4">Список приходов</h6>
+                    <hr>
 
-                <div class="row mb-2">
-                    <div class="col-md-6">
-                        <form class="d-none d-md-flex mb-3" method="GET" action="{% url 'depo:incoming-list' %}">
-                            <div class="input-group">
-                                <input type="search" name="search" class="form-control border-0"
-                                       placeholder="Search">
-                                <div class="input-group-append">
-                                    <button type="submit" class="btn btn-secondary mx-3">Найти</button>
+                    <div class="row mb-2">
+                        <div class="col-md-6">
+                            <form class="d-none d-md-flex mb-3" method="GET" action="{% url 'depo:incoming-list' %}">
+                                <div class="input-group">
+                                    <input type="search" name="search" class="form-control border-0"
+                                           placeholder="Search">
+                                    <div class="input-group-append">
+                                        <button type="submit" class="btn btn-secondary mx-3">Найти</button>
+                                    </div>
                                 </div>
-                            </div>
-                        </form>
+                            </form>
+                        </div>
+                        <div class="col-md-6">
+                            <a href="{% url 'depo:incoming-create' %}" type="button" class="btn btn-primary">Создать</a>
+                        </div>
                     </div>
-                    <div class="col-md-6">
-                        <a href="{% url 'depo:incoming-create' %}" type="button" class="btn btn-primary">Создать</a>
-                    </div>
-                </div>
 
-                <!-- Table start -->
-                <div class="table-responsive">
-                    <table class="table table-striped">
-                        <thead>
-                        <tr>
-                            <th scope="col">Из склада</th>
-                            <th scope="col">В склад</th>
-                            <th scope="col">Дата</th>
-                            <th scope="col">Инвойс</th>
-                            <th scope="col">Тип</th>
-                            <th scope="col">Менежер склада</th>
-                            <th scope="col">Действия</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        {% for incoming in items %}
+                    <!-- Table start -->
+                    <div class="table-responsive">
+                        <table class="table table-striped table-light table-hover">
+                            <thead>
                             <tr>
-                                <td>{{ incoming.from_warehouse }}</td>
-                                <td>{{ incoming.warehouse }}</td>
-                                <td>{{ incoming.data }}</td>
-                                <td>{{ incoming.invoice }}</td>
-                                <td>{{ incoming.incoming_type }}</td>
-                                <td>{{ incoming.created_by }}</td>
-                                <td>
-                                    <a href="{% url 'depo:incoming-detail' incoming.pk %}" type="button"
-                                       class="btn btn-primary btn-sm"><i class="bi bi-pencil-square"></i>
-                                    </a>
-                                </td>
+                                <th scope="col">Из склада</th>
+                                <th scope="col">В склад</th>
+                                <th scope="col">Дата</th>
+                                <th scope="col">Инвойс</th>
+                                <th scope="col">Тип</th>
+                                <th scope="col">Менежер склада</th>
+                                <th scope="col">Действия</th>
                             </tr>
-                        {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
+                            </thead>
+                            <tbody>
+                            {% for incoming in items %}
+                                <tr>
+                                    <td>{{ incoming.from_warehouse }}</td>
+                                    <td>{{ incoming.warehouse }}</td>
+                                    <td>{{ incoming.data }}</td>
+                                    <td>{{ incoming.invoice }}</td>
+                                    <td>{{ incoming.incoming_type }}</td>
+                                    <td>{{ incoming.created_by }}</td>
+                                    <td>
+                                        <a href="{% url 'depo:incoming-detail' incoming.pk %}" type="button"
+                                           class="btn btn-primary btn-sm"><i class="bi bi-pencil-square"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
                     <!-- Table end -->
 
 
                     <!-- Pagination start -->
-                    {% include 'pagination.html' with items=items %}
+                    {% include 'base/pagination.html' with items=items %}
                     <!-- Pagination end -->
 
                 </div>

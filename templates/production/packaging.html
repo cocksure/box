@@ -24,29 +24,16 @@
                                 {{ form.as_p }}
                                 <button class="btn btn-outline-primary" type="submit">Упаковать</button>
                             </form>
-                            {% if messages %}
-                                <div class="col-md-12 mt-2">
-                                    {% for message in messages %}
-                                        <div class="alert alert-dismissible fade show 
-                    {% if message.tags == 'success' %}alert-success
-                    {% elif message.tags == 'info' %}alert-info
-                    {% elif message.tags == 'error' %}alert-danger
-                    {% else %}alert-secondary{% endif %}"
-                                             role="alert">
-                                            {{ message }}
-                                            <button type="button" class="btn-close" data-bs-dismiss="alert"
-                                                    aria-label="Close"></button>
-                                        </div>
-                                    {% endfor %}
-                                </div>
-                            {% endif %}
+                        
+                            {% include 'base/messages.html' %}
+                            
                         </div>
 
                     </div>
                 </div>
             </div>
         </div>
-    </div>  <!-- Закрываем div с классом container-fluid -->
+    </div>
 
     {% block dashboard %}
     {% endblock dashboard %}

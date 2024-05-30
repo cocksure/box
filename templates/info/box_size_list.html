@@ -15,7 +15,7 @@
                     <!-- Search -->
                     <div class="row mb-2">
                         <div class="col-md-6">
-                            {% include 'search_form.html' %}
+                            {% include 'base/search_form.html' %}
                         </div>
                         <div class="col-md-6 text-end">
                             <button type="button" class="btn btn-primary" id="openCreateModalBtn"
@@ -26,9 +26,9 @@
                     </div>
 
                     <!--  Modal -->
-                    {% include 'modal_template.html' %}
+                    {% include 'base/modal_template.html' %}
 
-                
+
                     <!--  Table -->
                     <div class="table-responsive">
                         <table class="table table-striped">
@@ -52,16 +52,16 @@
                         </table>
                     </div>
 
-                
+
                     <!-- Блок с пагинацией -->
-                    {% include 'pagination.html' with items=items %}
+                    {% include 'base/pagination.html' with items=items %}
 
 
                 </div>
             </div>
         </div>
     </div>
-    
+
     {% block dashboard %}
     {% endblock %}
 

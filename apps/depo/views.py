@@ -143,15 +143,13 @@ class OutgoingDetailView(View):
 				Stock.objects.bulk_update(stocks_to_update, ['amount'])
 
 			elif action == 'reject':
-				print("Action:", action)
 
 				outgoing.status = Outgoing.OutgoingStatus.REJECT
 				outgoing.save()
 
 			messages.success(request, "Успешно.")
 		else:
-			messages.error(request,
-						   "Вы не являетесь менеджером склада и поэтому не можете принять или отклонить расход.")
+			messages.error(request, "Вы не являетесь менеджером этого склада .")
 
 		# Возвращаем пользователя на страницу деталей этого Outgoing объекта после изменения его статуса
 		return HttpResponseRedirect(reverse('depo:outgoing-detail', kwargs={'pk': outgoing_id}))
@@ -202,13 +200,11 @@ class IncomingCreate(CreateView):
 								comment=comment,
 								incoming=incoming
 							)
-							print("Material created:", material_id, amount, comment)
 							incoming_material_data.append({'material': material_id, 'amount': amount})
-
 						except Material.DoesNotExist:
-							print("Material with ID", material_id, "does not exist.")
+							messages.error(self.request, f"Материал с ID {material_id} не существует.")
 						except Exception as e:
-							print("Error while creating material:", e)
+							messages.error(self.request, f"Ошибка при создании материала: {e}")
 
 				stocks_to_update = []
 				warehouse = incoming.warehouse
@@ -226,14 +222,19 @@ class IncomingCreate(CreateView):
 
 				Stock.objects.bulk_update(stocks_to_update, ['amount'])
 
+				messages.success(self.request, "Приход Успешно создан!")
 
 		except Exception as e:
+			messages.error(self.request, f"Error: {e}")
 			return JsonResponse({'error': str(e)}, status=400)
 		else:
 			return HttpResponseRedirect(reverse_lazy('depo:incoming-list'))
 
 	def form_invalid(self, form):
-		return JsonResponse({'success': False, 'errors': form.errors}, status=400)
+		for field, errors in form.errors.items():
+			for error in errors:
+				messages.error(self.request, f"{field}: {error}")
+		return super().form_invalid(form)
 
 	def get_context_data(self, **kwargs):
 		context = super().get_context_data(**kwargs)
@@ -245,6 +246,9 @@ class IncomingCreate(CreateView):
 		else:
 			context['material_formset'] = IncomingMaterialFormSet()
 		return context
+
+
+from django.contrib import messages
 
 
 class OutgoingCreate(CreateView):
@@ -261,79 +265,33 @@ class OutgoingCreate(CreateView):
 		warehouse_id = self.request.POST.get('warehouse')
 		warehouse = get_object_or_404(Warehouse, id=warehouse_id)
 
-		# Проверяем наличие материалов на складе
-		check_result, insufficient_materials = warehouse.has_enough_material(self.request.POST)
+		check_result, insufficient_materials = self.check_material_availability(warehouse)
 
 		if not check_result:
 			error_message = 'Недостаточно материалов на складе'
 			messages.error(self.request, error_message)
-
-			# Сохраняем информацию о недостающих материалах в сессии
 			self.request.session['insufficient_materials'] = insufficient_materials
-
 			return super().form_invalid(form)
 
 		try:
 			with transaction.atomic():
 				outgoing.save()
+				outgoing_material_data = self.save_outgoing_materials(outgoing)
 
-				detail_counter = int(self.request.POST.get('detail_counter', 0))
-				outgoing_material_data = []
-
-				for detail_index in range(1, detail_counter + 1):
-					material_id = self.request.POST.get('outgoing_material_' + str(detail_index))
-					amount = self.request.POST.get('outgoing_amount_' + str(detail_index))
-					comment = self.request.POST.get('outgoing_comment_' + str(detail_index))
-
-					if material_id and amount:
-						try:
-							material = Material.objects.get(id=material_id)
-
-							OutgoingMaterial.objects.create(
-								material=material,
-								amount=amount,
-								comment=comment,
-								outgoing=outgoing
-							)
-							outgoing_material_data.append({'material': material_id, 'amount': amount})
-
-						except Material.DoesNotExist:
-							print("Material with ID", material_id, "does not exist.")
-						except Exception as e:
-							print("Error while creating material:", e)
-
-				# Проверяем, является ли тип исхода "Расход" или "Продажа",
-				# и если да, то обновляем запасы на складе
 				if outgoing.outgoing_type != Outgoing.OutgoingType.MOVEMENT:
-
-					stocks_to_update = []
-					warehouse = outgoing.warehouse
-
-					for item in outgoing_material_data:
-						material_id = item['material']
-						amount = item['amount']
-
-						material_instance = get_object_or_404(Material, id=material_id)
-
-						amount = int(amount)
-						stock, created = Stock.objects.get_or_create(material=material_instance, warehouse=warehouse)
-						stock.amount -= amount  # Вычитаем количество из склада
-						stocks_to_update.append(stock)
-
-					Stock.objects.bulk_update(stocks_to_update, ['amount'])
-
+					self.update_stock(outgoing, outgoing_material_data)
 
 		except Exception as e:
 			messages.error(self.request, str(e))
 			return super().form_invalid(form)
-		else:
-			return HttpResponseRedirect(reverse_lazy('depo:outgoing-list'))
+
+		messages.success(self.request, "Запись о исходящем материале успешно создана.")
+		return HttpResponseRedirect(reverse_lazy('depo:outgoing-list'))
 
 	def form_invalid(self, form):
-		# Добавляем сообщения об ошибках к форме
 		for field, errors in form.errors.items():
 			for error in errors:
-				self.add_error(field, error)
+				messages.error(self.request, f"{field}: {error}")
 		return super().form_invalid(form)
 
 	def get_context_data(self, **kwargs):
@@ -346,3 +304,48 @@ class OutgoingCreate(CreateView):
 		else:
 			context['material_formset'] = OutgoingMaterialFormSet()
 		return context
+
+	def check_material_availability(self, warehouse):
+		return warehouse.has_enough_material(self.request.POST)
+
+	def save_outgoing_materials(self, outgoing):
+		outgoing_material_data = []
+		detail_counter = int(self.request.POST.get('detail_counter', 0))
+
+		for detail_index in range(1, detail_counter + 1):
+			material_id = self.request.POST.get('outgoing_material_' + str(detail_index))
+			amount = self.request.POST.get('outgoing_amount_' + str(detail_index))
+			comment = self.request.POST.get('outgoing_comment_' + str(detail_index))
+
+			if material_id and amount:
+				try:
+					material = Material.objects.get(id=material_id)
+					OutgoingMaterial.objects.create(
+						material=material,
+						amount=amount,
+						comment=comment,
+						outgoing=outgoing
+					)
+					outgoing_material_data.append({'material': material_id, 'amount': amount})
+				except Material.DoesNotExist:
+					messages.error(self.request, f"Материал с ID {material_id} не существует.")
+				except Exception as e:
+					messages.error(self.request, f"Ошибка при создании материала: {e}")
+		return outgoing_material_data
+
+	def update_stock(self, outgoing, outgoing_material_data):
+		stocks_to_update = []
+		warehouse = outgoing.warehouse
+
+		for item in outgoing_material_data:
+			material_id = item['material']
+			amount = item['amount']
+
+			material_instance = get_object_or_404(Material, id=material_id)
+
+			amount = int(amount)
+			stock, created = Stock.objects.get_or_create(material=material_instance, warehouse=warehouse)
+			stock.amount -= amount
+			stocks_to_update.append(stock)
+
+		Stock.objects.bulk_update(stocks_to_update, ['amount'])

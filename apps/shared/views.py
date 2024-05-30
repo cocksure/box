@@ -64,7 +64,7 @@ class BaseListView(View):
 
 class BaseListCreateView(BaseListView):
 	def post(self, request):
-		form = self.get_form()(request.POST)
+		form = self.get_form()(request.POST, request.FILES)
 		if form.is_valid():
 			item = form.save(commit=False)
 			item.created_by = request.user

@@ -39,7 +39,7 @@ class BoxModelEditView(View, LoginRequiredMixin):
 
 	def post(self, request, pk):
 		boxmodel = get_object_or_404(BoxModel, pk=pk)
-		form = BoxModelForm(request.POST, instance=boxmodel)
+		form = BoxModelForm(request.POST, request.FILES, instance=boxmodel)  # Используйте instance=boxmodel
 		if form.is_valid():
 			form.save()
 			messages.success(request, 'Changes saved successfully.')
@@ -166,6 +166,11 @@ class BoxOrderDetailView(DetailView):
 			except BoxOrderDetail.DoesNotExist:
 				return JsonResponse({'error': 'Invalid box order detail ID'}, status=400)
 
+			# Проверка на существующий ProductionOrder для данного BoxOrderDetail
+			if ProductionOrder.objects.filter(box_order_detail=detail).exists():
+				messages.error(request, 'Производственный заказ для этой детали заказа коробки уже существует.')
+				return redirect('production:box-order-detail', pk=box_order.pk)
+
 			form = self.form_class(request.POST)
 			if form.is_valid():
 				with transaction.atomic():
@@ -188,16 +193,25 @@ class BoxOrderDetailView(DetailView):
 						created_by=request.user
 					)
 
+					# Расчет общего количества материалов на основе "grams_per_box"
+					total_material_amount = detail.amount * detail.box_model.grams_per_box
+
 					OutgoingMaterial.objects.create(
 						outgoing=outgoing,
 						material=detail.box_model.material,
-						amount=detail.amount
+						amount=total_material_amount
 					)
 
 					# Обновляем запасы на складе
 					stock, created = Stock.objects.get_or_create(material=detail.box_model.material,
 																 warehouse=warehouse)
-					stock.amount -= detail.amount
+
+					if stock.amount < total_material_amount:
+						transaction.set_rollback(True)
+						messages.error(request, 'Недостаточно материалов на складе.')
+						return JsonResponse({'error': 'Недостаточно материалов на складе.'}, status=400)
+
+					stock.amount -= total_material_amount
 					stock.save()
 
 				return redirect('production:box-order-detail', pk=box_order.pk)
@@ -307,9 +321,17 @@ class ProcessLogListView(BaseListView):
 
 		# Создаем словарь для хранения информации о процессах для каждого заказа
 		order_process_status = {}
+		production_orders = set()
+
 		for log in logs:
-			order_process_status.setdefault(log.production_order.id, {})
-			order_process_status[log.production_order.id][log.process.id] = True
+			production_order_id = log.production_order.id
+			process_id = log.process.id
+
+			production_orders.add(log.production_order)
+
+			if production_order_id not in order_process_status:
+				order_process_status[production_order_id] = {}
+			order_process_status[production_order_id][process_id] = True
 
 		page_obj = self.apply_pagination_and_search_by_code(logs, self.request)
 
@@ -318,6 +340,7 @@ class ProcessLogListView(BaseListView):
 			'processes': processes,
 			'items': page_obj,
 			'order_process_status': order_process_status,
+			'production_orders': list(production_orders)
 		})
 		return context
 
@@ -430,17 +453,49 @@ def generate_box_order_pdf(request, order_id):
 
 def generate_production_order_pdf(request, production_order_id):
 	production_order = get_object_or_404(ProductionOrder, id=production_order_id)
+	box_order_detail = production_order.box_order_detail
+	box_order = box_order_detail.box_order
+	box_model = box_order_detail.box_model
 
+	# Генерация QR-кода (если требуется)
 	qr_code_data = generate_qr_code(production_order.code)
 
-	html_string = render_to_string('pdf/production_order_pdf.html',
-								   {'order': production_order, 'qr_code_data': qr_code_data})
+	# Получение процессов, связанных с типом работы
+	processes = Process.objects.all()
 
-	html = HTML(string=html_string)
+	# Создание словаря для хранения информации о процессах для всех заказов на производство
+	all_production_orders = ProductionOrder.objects.all()
+	order_process_status = {}
+
+	for order in all_production_orders:
+		order_process_status[order.id] = {}
+		logs = ProcessLog.objects.filter(production_order=order)
+		for log in logs:
+			process_id = log.process.id
+			order_process_status[order.id][process_id] = True
+			
+	photo_url = request.build_absolute_uri(box_model.photo.url)
+	print("Photo URL:", photo_url)
+
+	context = {
+		'order': production_order,
+		'qr_code_data': qr_code_data,
+		'box_order': box_order,
+		'box_model': box_model,
+		'photo_url': photo_url,
+		'order_details': box_order_detail,
+		'processes': processes,
+		'order_process_status': order_process_status,
+		'production_orders': all_production_orders,
+	}
+
+	html_string = render_to_string('pdf/production_order_pdf.html', context)
+	html = HTML(string=html_string, base_url=request.build_absolute_uri('/'))
 	pdf = html.write_pdf()
 
 	response = HttpResponse(pdf, content_type='application/pdf')
-	response['Content-Disposition'] = f'attachment; filename="production_order_{production_order}.pdf"'
+	response['Content-Disposition'] = f'attachment; filename="production_order_{production_order.id}.pdf"'
 
 	return response
+
 # ----------------------------------------PDF views finish----------------------------------------------------------

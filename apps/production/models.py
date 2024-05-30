@@ -53,7 +53,7 @@ class BoxModel(BaseModel):
 	material = models.ForeignKey(Material, on_delete=models.CASCADE, verbose_name="Материал")
 	photo = models.ImageField(
 		upload_to='box_photos',
-		default='box_photos/no-image.png',
+		default='box_photos/box_foto.png',
 		validators=[FileExtensionValidator(allowed_extensions=['jpg', 'jpeg', 'png', 'heic'])],
 		verbose_name="Изображение"
 	)
@@ -71,6 +71,8 @@ class BoxModel(BaseModel):
 	max_load = models.CharField(max_length=50, blank=True, null=True, verbose_name="Максимальная нагрузка")
 	color = models.CharField(max_length=50, blank=True, null=True, verbose_name="Цвет")
 	comment = models.TextField(blank=True, null=True, verbose_name="Комментарий")
+	grams_per_box = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True,
+										verbose_name="Грамм на одну коробку")
 
 	class Meta:
 		ordering = ['-created_time']

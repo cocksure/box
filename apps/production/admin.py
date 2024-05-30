@@ -40,8 +40,7 @@ class TypeWorkAdmin(admin.ModelAdmin):
 class BoxModelAdmin(admin.ModelAdmin):
 	list_display = (
 		'name', 'material', 'box_size', 'box_type', 'photo', 'closure_type', 'additional_properties', 'max_load',
-		'color',
-		'comment', 'created_by', 'updated_by', 'created_time')
+		'color', 'grams_per_box', 'comment', 'created_by', 'updated_by', 'created_time')
 	search_fields = ('name',)
 	list_filter = ('box_type',)
 
