@@ -39,13 +39,13 @@ class BoxModelEditView(View, LoginRequiredMixin):
 
 	def post(self, request, pk):
 		boxmodel = get_object_or_404(BoxModel, pk=pk)
-		form = BoxModelForm(request.POST, request.FILES, instance=boxmodel)  # Используйте instance=boxmodel
+		form = BoxModelForm(request.POST, request.FILES, instance=boxmodel)
 		if form.is_valid():
 			form.save()
-			messages.success(request, 'Changes saved successfully.')
+			messages.success(request, 'Изменения успешно сохранены.')
 			return redirect('production:box-model-list')
 		else:
-			messages.error(request, 'Please correct the errors below.')
+			messages.error(request, 'Пожалуйста, исправьте ошибки ниже.')
 		context = {'form': form, 'boxmodel': boxmodel}
 		return render(request, 'production/box_model_edit.html', context)
 
@@ -152,19 +152,22 @@ class BoxOrderDetailView(DetailView):
 			if new_status in [choice[0] for choice in box_order.BoxOrderStatus.choices]:
 				box_order.status = new_status
 				box_order.save()
+				messages.success(request, 'Статус заказа успешно обновлен.')
 				return redirect('production:box-order-detail', pk=box_order.pk)
 			else:
-				return JsonResponse({'error': 'Invalid status parameter'}, status=400)
+				messages.error(request, 'Неверный параметр статуса.')
+				return redirect('production:box-order-detail', pk=box_order.pk)
 		else:
 			if box_order.status != BoxOrder.BoxOrderStatus.ACCEPT:
-				return JsonResponse({'error': 'Production order can only be created if the box order is approved.'},
-									status=400)
+				messages.error(request, 'Производственный заказ можно создать только если заказ на коробки утвержден.')
+				return redirect('production:box-order-detail', pk=box_order.pk)
 
 			detail_id = request.POST.get('box_order_detail_id')
 			try:
 				detail = box_order.boxorderdetail_set.get(pk=detail_id)
 			except BoxOrderDetail.DoesNotExist:
-				return JsonResponse({'error': 'Invalid box order detail ID'}, status=400)
+				messages.error(request, 'Неверный идентификатор детали заказа коробки.')
+				return redirect('production:box-order-detail', pk=box_order.pk)
 
 			# Проверка на существующий ProductionOrder для данного BoxOrderDetail
 			if ProductionOrder.objects.filter(box_order_detail=detail).exists():
@@ -173,6 +176,14 @@ class BoxOrderDetailView(DetailView):
 
 			form = self.form_class(request.POST)
 			if form.is_valid():
+				grams_per_box = detail.box_model.grams_per_box
+				if grams_per_box is None or detail.amount is None:
+					messages.error(request, 'Грамм на одну коробку или количество не определен!')
+					return redirect('production:box-order-detail', pk=box_order.pk)
+
+				# Расчет общего количества материалов на основе "grams_per_box"
+				total_material_amount = detail.amount * grams_per_box
+
 				with transaction.atomic():
 					production_order = form.save(commit=False)
 					production_order.box_order_detail = detail
@@ -184,7 +195,8 @@ class BoxOrderDetailView(DetailView):
 					try:
 						warehouse = Warehouse.objects.get(pk=warehouse_id)
 					except Warehouse.DoesNotExist:
-						return JsonResponse({'error': 'Invalid warehouse ID'}, status=400)
+						messages.error(request, 'Неверный идентификатор склада.')
+						return redirect('production:box-order-detail', pk=box_order.pk)
 
 					outgoing = Outgoing.objects.create(
 						data=production_order.shipping_date,
@@ -192,9 +204,6 @@ class BoxOrderDetailView(DetailView):
 						warehouse=warehouse,
 						created_by=request.user
 					)
-
-					# Расчет общего количества материалов на основе "grams_per_box"
-					total_material_amount = detail.amount * detail.box_model.grams_per_box
 
 					OutgoingMaterial.objects.create(
 						outgoing=outgoing,
@@ -205,20 +214,19 @@ class BoxOrderDetailView(DetailView):
 					# Обновляем запасы на складе
 					stock, created = Stock.objects.get_or_create(material=detail.box_model.material,
 																 warehouse=warehouse)
-
 					if stock.amount < total_material_amount:
 						transaction.set_rollback(True)
 						messages.error(request, 'Недостаточно материалов на складе.')
-						return JsonResponse({'error': 'Недостаточно материалов на складе.'}, status=400)
+						return redirect('production:box-order-detail', pk=box_order.pk)
 
 					stock.amount -= total_material_amount
 					stock.save()
 
+				messages.success(request, 'Производственный заказ успешно создан.')
 				return redirect('production:box-order-detail', pk=box_order.pk)
 			else:
-				messages.error(request, 'Недостаточно материалов на складе.')
-
-				return JsonResponse({'error': 'Form validation failed'}, status=400)
+				messages.error(request, 'Ошибка проверки формы.')
+				return redirect('production:box-order-detail', pk=box_order.pk)
 
 
 class ProductionOrderListView(BaseListView):
@@ -473,9 +481,8 @@ def generate_production_order_pdf(request, production_order_id):
 		for log in logs:
 			process_id = log.process.id
 			order_process_status[order.id][process_id] = True
-			
+
 	photo_url = request.build_absolute_uri(box_model.photo.url)
-	print("Photo URL:", photo_url)
 
 	context = {
 		'order': production_order,

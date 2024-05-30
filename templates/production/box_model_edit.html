@@ -9,6 +9,7 @@
             <div class="col-md-12 forma">
                 <div class="bg-light rounded h-100 p-4">
                     <h6 class="mb-4">Модели коробок</h6>
+                    {% include 'base/messages.html' %}
                     <hr>
                     <form method="post" action="{% url 'production:box-model-edit' boxmodel.id %}"
                           enctype="multipart/form-data">

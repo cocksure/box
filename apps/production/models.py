@@ -71,7 +71,7 @@ class BoxModel(BaseModel):
 	max_load = models.CharField(max_length=50, blank=True, null=True, verbose_name="Максимальная нагрузка")
 	color = models.CharField(max_length=50, blank=True, null=True, verbose_name="Цвет")
 	comment = models.TextField(blank=True, null=True, verbose_name="Комментарий")
-	grams_per_box = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True,
+	grams_per_box = models.DecimalField(max_digits=10, decimal_places=3, blank=True, null=True,
 										verbose_name="Грамм на одну коробку")
 
 	class Meta:
