@@ -14,7 +14,8 @@ class BaseListView(View):
 			queryset = queryset.filter(Q(name__icontains=search_query))
 
 		page_size = request.GET.get("page_size", 12)
-		paginator = Paginator(queryset, page_size)
+		ordering = '-created_time'  # Specify the ordering here
+		paginator = Paginator(queryset.order_by(ordering), page_size)
 		page_num = request.GET.get("page", 1)
 		page_obj = paginator.get_page(page_num)
 		return page_obj

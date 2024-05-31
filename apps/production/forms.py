@@ -119,7 +119,7 @@ class ProcessLogFilterForm(forms.Form):
 									 widget=forms.Select(attrs={'class': 'form-select'}))
 	status = forms.ChoiceField(choices=[('all', 'Все')] + ProductionOrder.ProductionOrderStatus.choices, required=False,
 							   label='Статус', widget=forms.Select(attrs={'class': 'form-select'}))
-	start_date = forms.DateField(required=False, label='Дата начала',
+	start_date = forms.DateField(required=False, label='Начало',
 								 widget=forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}))
-	end_date = forms.DateField(required=False, label='Дата окончания',
+	end_date = forms.DateField(required=False, label='Окончания',
 							   widget=forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}))
