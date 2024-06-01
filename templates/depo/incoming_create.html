@@ -20,11 +20,10 @@
                             <hr class="my-0">
                         </div>
 
-                        {#                    {% include 'base/messages.html' %}#}
-
                         <div class="row rounded ">
                             <form id="id_form" method="post" class="row g-3">
                                 {% csrf_token %}
+
                                 <div class="col-md-2">
                                     {{ form.data }}
                                 </div>
@@ -44,6 +43,7 @@
                             </form>
                         </div>
                     </div>
+
                     <!-- Модальное окно для создания детали заказа -->
                     <div class="modal fade" id="myModalCreate" tabindex="-1" role="dialog"
                          aria-labelledby="myModalLabelCreate">
@@ -66,19 +66,20 @@
                                                 </div>
                                             {% endfor %}
                                         </div>
-                                        <button type="button" class="btn btn-primary w-100" id="addDetailBtnIncoming">
-                                            Добавить
+                                        <button type="button" class="btn btn-primary w-100" id="addDetailBtn">Добавить
                                         </button>
                                     </form>
                                 </div>
                             </div>
                         </div>
                     </div>
+
                     <!-- Таблица для отображения деталей заказа -->
                     <div class="row p-3 bg-light rounded">
                         <button type="button" class="btn btn-primary btn-sm w-100 mb-3" id="openCreateModalBtn"
                                 data-bs-toggle="modal" data-bs-target="#myModalCreate">Добавить
                         </button>
+
                         <div style="max-height: 400px; overflow-y: auto;">
                             <table class="table table-striped mt-3 text-center">
                                 <thead>
@@ -102,14 +103,134 @@
 
     {% block dashboard %}
     {% endblock %}
-    <script src="{% static 'js/common.js' %}"></script>
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            document.getElementById('addDetailBtnIncoming').addEventListener('click', function () {
-                addDetail('incoming');
+            let detailCounter = 1;
+
+            function addDetail() {
+                let incomingMaterial = document.getElementById('incoming_material').value;
+                let incomingAmount = document.getElementById('incoming_amount').value;
+                let incomingComment = document.getElementById('incoming_comment').value;
+
+                if (!incomingMaterial || !incomingAmount) {
+                    alert('Пожалуйста, заполните все поля.');
+                    return;
+                }
+
+                let materialFieldName = 'incoming_material_' + detailCounter;
+                let amountFieldName = 'incoming_amount_' + detailCounter;
+                let commentFieldName = 'incoming_comment_' + detailCounter;
+
+                let existingIncomingMaterialField = document.getElementById(materialFieldName);
+                let existingIncomingAmountField = document.getElementById(amountFieldName);
+                let existingIncomingCommentField = document.getElementById(commentFieldName);
+
+                if (!existingIncomingMaterialField && !existingIncomingAmountField && !existingIncomingCommentField) {
+                    let incomingMaterialField = '<input type="hidden" name="' + materialFieldName + '" class="incoming_material" value="' + incomingMaterial + '">';
+                    let incomingAmountField = '<input type="hidden" name="' + amountFieldName + '" class="incoming_amount" value="' + incomingAmount + '">';
+                    let incomingCommentField = '<input type="hidden" name="' + commentFieldName + '" class="incoming_comment" value="' + incomingComment + '">';
+
+                    document.getElementById('id_form').insertAdjacentHTML('beforeend', incomingMaterialField);
+                    document.getElementById('id_form').insertAdjacentHTML('beforeend', incomingAmountField);
+                    document.getElementById('id_form').insertAdjacentHTML('beforeend', incomingCommentField);
+
+                    let newRow = '<tr>' +
+                        '<td>' + incomingMaterial + '</td>' +
+                        '<td>' + incomingAmount + '</td>' +
+                        '<td>' + incomingComment + '</td>' +
+                        '<td>' +
+                        '<button type="button" class="btn btn-danger btn-sm delete-btn ml-2"><i class="bi bi-trash"></i></button>' +
+                        '</td>' +
+                        '</tr>';
+
+                    document.getElementById('incoming_materials_table').insertAdjacentHTML('beforeend', newRow);
+
+                    document.querySelectorAll('.delete-btn').forEach(function (button) {
+                        button.addEventListener('click', function () {
+                            let row = button.closest('tr');
+                            row.remove();
+
+                            let incomingMaterial = row.cells[0].textContent;
+                            let incomingAmount = row.cells[1].textContent;
+                            let incomingComment = row.cells[2].textContent;
+
+                            let hiddenIncomingMaterialFields = document.querySelectorAll('input[name^="incoming_material_"]');
+                            let hiddenIncomingAmountFields = document.querySelectorAll('input[name^="incoming_amount_"]');
+                            let hiddenIncomingCommentFields = document.querySelectorAll('input[name^="incoming_comment_"]');
+
+                            hiddenIncomingMaterialFields.forEach(function (field) {
+                                if (field.value === incomingMaterial) {
+                                    field.remove();
+                                }
+                            });
+
+                            hiddenIncomingAmountFields.forEach(function (field) {
+                                if (field.value === incomingAmount) {
+                                    field.remove();
+                                }
+                            });
+
+                            hiddenIncomingCommentFields.forEach(function (field) {
+                                if (field.value === incomingComment) {
+                                    field.remove();
+                                }
+                            });
+                        });
+                    });
+
+                    document.getElementById('incoming_material').value = '';
+                    document.getElementById('incoming_amount').value = '';
+                    document.getElementById('incoming_comment').value = '';
+
+                    // Закрываем модальное окно
+                    $('#myModalCreate').modal('hide');
+
+                    detailCounter++;
+                } else {
+                    console.log('Fields already exist for this detail'); // Отладочный вывод
+                }
+            }
+
+            document.getElementById('addDetailBtn').addEventListener('click', addDetail);
+
+            document.getElementById('myModalCreateForm').addEventListener('keydown', function (event) {
+                if (event.key === 'Enter') {
+                    event.preventDefault();  // предотвращаем стандартное поведение клавиши Enter
+                    addDetail();
+                }
             });
-            handleSubmit('incoming', '{% url "depo:incoming-create" %}');
+
+            document.getElementById('id_form').addEventListener('submit', function (event) {
+                event.preventDefault();
+
+                document.getElementById('detail_counter').value = detailCounter;
+
+                let formData = new FormData(this);
+                let incomingMaterials = document.querySelectorAll('.incoming_material, .incoming_amount, .incoming_comment');
+
+                incomingMaterials.forEach(function (detail) {
+                    formData.append(detail.name, detail.value);
+                });
+
+                fetch('{% url "depo:incoming-create" %}', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    }
+                })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        } else {
+                            window.location.href = '{% url "depo:incoming-list" %}';
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                    });
+            });
         });
     </script>
 {% endblock %}
