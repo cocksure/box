@@ -1,7 +1,7 @@
 from django.forms import inlineformset_factory
 from django import forms
-from apps.info.models import Material, BoxSize, BoxType, Firm
-from apps.production.models import BoxModel, ProductionOrder, ProcessLog, Process
+from apps.info.models import Material, BoxSize, BoxType
+from apps.production.models import BoxModel, ProductionOrder, Process
 from .models import BoxOrder, BoxOrderDetail
 
 
@@ -37,7 +37,7 @@ class BoxModelForm(forms.ModelForm):
 
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
-		self.fields['material'].queryset = Material.objects.all()
+		self.fields['material'].queryset = Material.objects.exclude(material_type=2)
 		self.fields['box_size'].queryset = BoxSize.objects.all()
 		self.fields['box_type'].queryset = BoxType.objects.all()
 
@@ -100,12 +100,15 @@ class ProcessLogForm(forms.Form):
 	)
 
 
-class PackagingForm(forms.Form):
+class ProductionOrderCodeForm(forms.Form):
 	production_order_code = forms.CharField(
 		label='Код или ID заказа на производство',
 		max_length=20,
 		widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Введите код или ID заказа'})
 	)
+
+
+class PackagingAmountForm(forms.Form):
 	packed_amount = forms.DecimalField(
 		label='Количество упаковано',
 		max_digits=10,

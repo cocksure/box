@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}  Упаковка {% endblock title %}
+{% block title %}Упаковка{% endblock title %}
 
 {% block content %}
 
@@ -21,14 +21,21 @@
                         <div class="row">
                             <form method="post">
                                 {% csrf_token %}
-                                {{ form.as_p }}
-                                <button class="btn btn-outline-primary" type="submit">Упаковать</button>
+                                {{ code_form.as_p }}
+{#                                <button class="btn btn-outline-primary" type="submit">Найти заказ</button>#}
                             </form>
-                        
-                            {% include 'base/messages.html' %}
-                            
-                        </div>
 
+                            {% if remaining_to_pack is not None %}
+                                <form method="post">
+                                    {% csrf_token %}
+                                    {{ amount_form.as_p }}
+                                    <button class="btn btn-outline-primary" type="submit">Упаковать</button>
+                                </form>
+                            {% endif %}
+
+                            {% include 'base/messages.html' %}
+                        
+                        </div>
                     </div>
                 </div>
             </div>

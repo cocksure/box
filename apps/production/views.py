@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import render, redirect
@@ -14,7 +16,7 @@ from apps.depo.models.outgoing import Outgoing, OutgoingMaterial
 from apps.depo.models.stock import Stock
 from apps.info.models import Warehouse, Material, MaterialType
 from apps.production.forms import BoxModelForm, BoxOrderForm, BoxOrderDetailFormSet, ProductionOrderForm, \
-	ProcessLogForm, ProcessLogFilterForm, PackagingForm
+	ProcessLogForm, ProcessLogFilterForm, ProductionOrderCodeForm, PackagingAmountForm
 from apps.production.models import BoxModel, BoxOrder, BoxOrderDetail, ProductionOrder, ProcessLog, Process
 from django.http import JsonResponse, HttpResponseRedirect, HttpResponse
 from django.db import transaction
@@ -191,7 +193,7 @@ class BoxOrderDetailView(DetailView):
 					production_order.save()
 
 					# Создаем запись о расходе
-					warehouse_id = 4
+					warehouse_id = 1
 					try:
 						warehouse = Warehouse.objects.get(pk=warehouse_id)
 					except Warehouse.DoesNotExist:
@@ -359,92 +361,112 @@ class ProcessLogListView(BaseListView):
 
 def packaging_view(request):
 	if request.method == 'POST':
-		form = PackagingForm(request.POST)
-		if form.is_valid():
-			code_or_id = form.cleaned_data['production_order_code']
-			packed_amount = form.cleaned_data['packed_amount']
-			try:
-				if code_or_id.isdigit():
-					production_order = ProductionOrder.objects.get(id=code_or_id)
-				else:
-					production_order = ProductionOrder.objects.get(code=code_or_id)
+		if 'production_order_code' in request.POST:
+			code_form = ProductionOrderCodeForm(request.POST)
+			if code_form.is_valid():
+				code_or_id = code_form.cleaned_data['production_order_code']
+				try:
+					if code_or_id.isdigit():
+						production_order = ProductionOrder.objects.get(id=code_or_id)
+					else:
+						production_order = ProductionOrder.objects.get(code=code_or_id)
 
-				# Проверяем, завершены ли все процессы
-				type_of_work = production_order.type_of_work
-				processes = type_of_work.process.order_by('queue')
-				completed_processes = ProcessLog.objects.filter(production_order=production_order).values_list(
-					'process', flat=True
-				)
+					# Проверяем, завершены ли все процессы
+					type_of_work = production_order.type_of_work
+					processes = type_of_work.process.order_by('queue')
+					completed_processes = ProcessLog.objects.filter(production_order=production_order).values_list(
+						'process', flat=True
+					)
 
-				if not processes.exclude(id__in=completed_processes).exists():
-					with transaction.atomic():
-						# Проверяем, чтобы количество упакованных товаров не превышало заказанное количество
+					if not processes.exclude(id__in=completed_processes).exists():
 						remaining_to_pack = production_order.amount - production_order.packed_amount
+						request.session['production_order_id'] = str(production_order.id)
+						request.session['remaining_to_pack'] = str(remaining_to_pack)
+						messages.success(request, f'Можно упаковать до {remaining_to_pack} товаров!')
+						return redirect('production:packaging')
+					else:
+						messages.error(request, 'Не все процессы завершены для этого заказа.')
+				except ProductionOrder.DoesNotExist:
+					messages.error(request, 'Заказ с таким кодом или ID не найден.')
+		elif 'packed_amount' in request.POST:
+			amount_form = PackagingAmountForm(request.POST)
+			if amount_form.is_valid():
+				packed_amount = amount_form.cleaned_data['packed_amount']
+				production_order_id = request.session.get('production_order_id')
+				remaining_to_pack = request.session.get('remaining_to_pack')
+
+				if production_order_id and remaining_to_pack is not None:
+					try:
+						production_order = ProductionOrder.objects.get(id=production_order_id)
+						remaining_to_pack = Decimal(remaining_to_pack)  # Преобразуем обратно в Decimal
+
 						if packed_amount > remaining_to_pack:
 							messages.error(request, f'Невозможно упаковать больше {remaining_to_pack} товаров.')
 							return redirect('production:packaging')
 
-						# Обновляем количество упакованных товаров
-						production_order.packed_amount += packed_amount
-						production_order.status = ProductionOrder.ProductionOrderStatus.PACKED
-						production_order.save()
+						with transaction.atomic():
+							production_order.packed_amount += packed_amount
+							production_order.status = ProductionOrder.ProductionOrderStatus.PACKED
+							production_order.save()
 
-						# Создаем запись о приходе на склад
-						warehouse_id = 5
-						try:
-							warehouse = Warehouse.objects.get(pk=warehouse_id)
-						except Warehouse.DoesNotExist:
-							return JsonResponse({'error': 'Invalid warehouse ID'}, status=400)
+							warehouse_id = 2
+							try:
+								warehouse = Warehouse.objects.get(pk=warehouse_id)
+							except Warehouse.DoesNotExist:
+								return JsonResponse({'error': 'Invalid warehouse ID'}, status=400)
 
-						incoming = Incoming.objects.create(
-							data=timezone.now(),
-							warehouse=warehouse,
-							created_by=request.user,
-							created_time=timezone.now()
-						)
+							incoming = Incoming.objects.create(
+								data=timezone.now(),
+								warehouse=warehouse,
+								created_by=request.user,
+								created_time=timezone.now()
+							)
 
-						# Изменение сырья на готовый материал
-						raw_material = production_order.box_order_detail.box_model.material
-						finished_material_name = production_order.box_order_detail.box_model.name
-						finished_material_type = get_object_or_404(MaterialType, name="Готовый продукт")
+							raw_material = production_order.box_order_detail.box_model.material
+							finished_material_name = production_order.box_order_detail.box_model.name
+							finished_material_type = get_object_or_404(MaterialType, name="Готовый продукт")
 
-						finished_material, created = Material.objects.get_or_create(
-							name=finished_material_name,
-							defaults={
-								'code': f'FIN_{production_order.box_order_detail.box_model.name}',
-								'material_group': raw_material.material_group,
-								'special_group': raw_material.special_group,
-								'brand': raw_material.brand,
-								'material_type': finished_material_type,
-								'material_thickness': raw_material.material_thickness,
-								'unit_of_measurement': raw_material.unit_of_measurement
-							}
-						)
+							finished_material, created = Material.objects.get_or_create(
+								name=finished_material_name,
+								defaults={
+									'code': f'FIN_{production_order.box_order_detail.box_model.name}',
+									'material_group': raw_material.material_group,
+									'special_group': raw_material.special_group,
+									'brand': raw_material.brand,
+									'material_type': finished_material_type,
+									'material_thickness': raw_material.material_thickness,
+									'unit_of_measurement': raw_material.unit_of_measurement
+								}
+							)
 
-						# Создаем запись для готового материала
-						IncomingMaterial.objects.create(
-							material=finished_material,
-							amount=packed_amount,
-							comment='Упаковано',
-							incoming=incoming
-						)
+							IncomingMaterial.objects.create(
+								material=finished_material,
+								amount=packed_amount,
+								comment='Упаковано',
+								incoming=incoming
+							)
 
-						# Обновляем запасы на складе для готового материала
-						stock, created = Stock.objects.get_or_create(material=finished_material, warehouse=warehouse)
-						stock.amount += packed_amount
-						stock.save()
+							stock, created = Stock.objects.get_or_create(material=finished_material,
+																		 warehouse=warehouse)
+							stock.amount += packed_amount
+							stock.save()
 
-						messages.success(request, f'Упаковка завершена для заказа {production_order.code}.')
-				else:
-					messages.error(request, 'Не все процессы завершены для этого заказа.')
+							messages.success(request, f'Упаковка завершена для заказа - {production_order.code}.')
+							del request.session['production_order_id']
+							del request.session['remaining_to_pack']
+					except ProductionOrder.DoesNotExist:
+						messages.error(request, 'Произошла ошибка, заказ не найден.')
 
-				return redirect('production:packaging')
-			except ProductionOrder.DoesNotExist:
-				messages.error(request, 'Заказ с таким кодом или ID не найден.')
+					return redirect('production:packaging')
 	else:
-		form = PackagingForm()
+		code_form = ProductionOrderCodeForm()
+		amount_form = PackagingAmountForm()
 
-	return render(request, 'production/packaging.html', {'form': form})
+	return render(request, 'production/packaging.html', {
+		'code_form': code_form,
+		'amount_form': amount_form,
+		'remaining_to_pack': request.session.get('remaining_to_pack')
+	})
 
 
 # ----------------------------------------PDF views start----------------------------------------------------------

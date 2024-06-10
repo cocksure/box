@@ -42,7 +42,7 @@ class IncomingMaterialForm(forms.ModelForm):
 
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
-		self.fields['material'].queryset = Material.objects.all()
+		self.fields['material'].queryset = Material.objects.exclude(material_type=2)
 
 
 class OutgoingForm(forms.ModelForm):
@@ -80,6 +80,10 @@ class OutgoingMaterialForm(forms.ModelForm):
 				attrs={'class': 'form-control outgoing_comment', 'rows': 2, 'id': 'outgoing_comment',
 					   'name': 'outgoing_comment', 'placeholder': 'Примечание'}),
 		}
+
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+		self.fields['material'].queryset = Material.objects.exclude(material_type=2)
 
 
 OutgoingMaterialFormSet = inlineformset_factory(Outgoing, OutgoingMaterial, form=OutgoingMaterialForm, extra=1)

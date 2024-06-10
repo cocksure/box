@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block dashboard %}
+    <!-- Sale & Revenue Start -->
+    <div class="container-fluid pt-3 px-4">
+        <div class="row g-4">
+            <div class="col-sm-6 col-xl-3">
+                <div class="bg-light rounded d-flex align-items-center justify-content-between p-4">
+                    <i class="fa fa-calendar-day fa-3x text-primary"></i>
+                    <div class="ms-3">
+                        <p class="mb-2">Приходы за сегодня</p>
+                        <h6 class="mb-0">{{ today_incoming_sum }}</h6>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6 col-xl-3">
+                <div class="bg-light rounded d-flex align-items-center justify-content-between p-4">
+                    <i class="fa fa-calendar-alt fa-3x text-primary"></i>
+                    <div class="ms-3">
+                        <p class="mb-2">Приходы за все время</p>
+                        <h6 class="mb-0">{{ all_incoming_sum }}</h6>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6 col-xl-3">
+                <div class="bg-light rounded d-flex align-items-center justify-content-between p-4">
+                    <i class="fa fa-shopping-cart fa-3x text-primary"></i>
+                    <div class="ms-3">
+                        <p class="mb-2">Продажи за сегодня</p>
+                        <h6 class="mb-0">{{ today_sales_sum }}</h6>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6 col-xl-3">
+                <div class="bg-light rounded d-flex align-items-center justify-content-between p-4">
+                    <i class="fa fa-calendar-check fa-3x text-primary"></i>
+                    <div class="ms-3">
+                        <p class="mb-2">Продажи за все время</p>
+                        <h6 class="mb-0">{{ all_sales_sum }}</h6>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+    <!-- Sale & Revenue End -->
+
+
+    <!-- Sales Chart Start -->
+    <div class="container-fluid pt-3 px-4">
+        <div class="row g-4">
+            <div class="col-sm-12 col-xl-12">
+                <div class="col-sm-12 col-xl-12">
+                    <div class="bg-light text-center rounded p-4">
+                        <div class="d-flex align-items-center justify-content-between mb-4">
+                            <h6 class="mb-0">Производства</h6>
+                        </div>
+                        <canvas id="worldwide-sales"
+                                style="display: block; box-sizing: border-box; max-height: 520px; width: 449px;"
+                                width="449"
+                                height="224"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Sales Chart End -->
+
+
+
+    <!-- Footer Start -->
+    <div class="container-fluid pt-2 px-4">
+        <div class="bg-light rounded-top p-4">
+            <div class="row">
+                <div class="col-12 col-sm-6 text-center text-sm-start">
+                    © <a href="#">GOLDEN POLIGRAF PAPER GROUP</a>
+                </div>
+                <div class="col-12 col-sm-6 text-center text-sm-end">
+                    <br>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Footer End -->
+
+{% endblock %}
