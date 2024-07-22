@@ -14,13 +14,14 @@ from weasyprint import HTML
 from apps.depo.models.incoming import Incoming, IncomingMaterial
 from apps.depo.models.outgoing import Outgoing, OutgoingMaterial
 from apps.depo.models.stock import Stock
-from apps.info.models import Warehouse, Material, MaterialType
+from apps.info.models import Warehouse, Material, MaterialType, BoxSize
 from apps.production.forms import BoxModelForm, BoxOrderForm, BoxOrderDetailFormSet, ProductionOrderForm, \
 	ProcessLogForm, ProcessLogFilterForm, ProductionOrderCodeForm, PackagingAmountForm
 from apps.production.models import BoxModel, BoxOrder, BoxOrderDetail, ProductionOrder, ProcessLog, Process
 from django.http import JsonResponse, HttpResponseRedirect, HttpResponse
 from django.db import transaction
 
+from apps.production.utils import BoxProductionCalculation
 from apps.shared.utils import generate_qr_code
 from apps.shared.views import BaseListCreateView, BaseListView
 
@@ -32,11 +33,16 @@ class BoxModelListCreate(BaseListCreateView):
 	redirect_url = "production:box-model-list"
 
 
-class BoxModelEditView(View, LoginRequiredMixin):
+class BoxModelEditView(LoginRequiredMixin, View):
 	def get(self, request, pk):
 		boxmodel = get_object_or_404(BoxModel, pk=pk)
 		form = BoxModelForm(instance=boxmodel)
-		context = {'form': form, 'boxmodel': boxmodel}
+		material_area = boxmodel.calculate_total_material_area()
+		context = {
+			'form': form,
+			'boxmodel': boxmodel,
+			'material_area': material_area,
+		}
 		return render(request, 'production/box_model_edit.html', context)
 
 	def post(self, request, pk):
@@ -48,7 +54,12 @@ class BoxModelEditView(View, LoginRequiredMixin):
 			return redirect('production:box-model-list')
 		else:
 			messages.error(request, 'Пожалуйста, исправьте ошибки ниже.')
-		context = {'form': form, 'boxmodel': boxmodel}
+		material_area = boxmodel.calculate_total_material_area()
+		context = {
+			'form': form,
+			'boxmodel': boxmodel,
+			'material_area': material_area,
+		}
 		return render(request, 'production/box_model_edit.html', context)
 
 
@@ -210,7 +221,9 @@ class BoxOrderDetailView(DetailView):
 					OutgoingMaterial.objects.create(
 						outgoing=outgoing,
 						material=detail.box_model.material,
-						amount=total_material_amount
+						amount=total_material_amount,
+						production_order=production_order  # Устанавливаем связь с ProductionOrder
+
 					)
 
 					# Обновляем запасы на складе
@@ -467,6 +480,57 @@ def packaging_view(request):
 		'amount_form': amount_form,
 		'remaining_to_pack': request.session.get('remaining_to_pack')
 	})
+
+
+def calculate_box_production(request):
+	context = {}
+
+	if request.method == 'POST':
+		material_id = request.POST.get('material')
+		box_size_id = request.POST.get('box_size')
+		layers = int(request.POST.get('layers'))
+		quantity = request.POST.get('quantity')
+		norm_starch = float(request.POST.get('norm_starch', 0.025))
+		norm_glue = float(request.POST.get('norm_glue', 0.025))
+		norm_paint = float(request.POST.get('norm_paint', 0.025))
+
+		quantity = int(quantity) if quantity else None
+
+		material = get_object_or_404(Material, id=material_id)
+		box_size = get_object_or_404(BoxSize, id=box_size_id)
+
+		calculator = BoxProductionCalculation(material, box_size, layers, quantity, norm_starch, norm_glue, norm_paint)
+
+		# Calculate results
+		single_box_area = calculator.calculate_single_box_area()
+		total_area = calculator.calculate_total_area()
+		single_starch_consumption, total_starch_consumption = calculator.calculate_starch_consumption()
+		single_glue_consumption, total_glue_consumption = calculator.calculate_glue_consumption()
+		single_paint_consumption, total_paint_consumption = calculator.calculate_paint_consumption()
+
+		# Calculate material consumption using the material_consumption method
+		single_material_consumption, total_material_consumption = calculator.material_consumption()
+
+		# Populate context with results
+		context['single_box_area'] = single_box_area
+		context['total_area'] = total_area
+		context['single_starch_consumption'] = single_starch_consumption
+		context['total_starch_consumption'] = total_starch_consumption
+		context['single_glue_consumption'] = single_glue_consumption
+		context['total_glue_consumption'] = total_glue_consumption
+		context['single_paint_consumption'] = single_paint_consumption
+		context['total_paint_consumption'] = total_paint_consumption
+		context['single_material_consumption'] = single_material_consumption
+		context['total_material_consumption'] = total_material_consumption
+
+	# Fetch all materials and box sizes for the form
+	materials = Material.objects.all()
+	box_sizes = BoxSize.objects.all()
+
+	context['materials'] = materials
+	context['box_sizes'] = box_sizes
+
+	return render(request, 'production/calculate_box_production.html', context)
 
 
 # ----------------------------------------PDF views start----------------------------------------------------------

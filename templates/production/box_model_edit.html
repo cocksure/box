@@ -28,9 +28,9 @@
                                     {{ form.color }}
                                     {{ form.closure_type.label_tag }}
                                     {{ form.closure_type }}
-                                    {{ form.additional_properties.label_tag }}
-                                    {{ form.additional_properties }}
-                                    {{ form.max_load }}
+                                    {{ form.layers }}
+                                    {{ form.additional_materials.label_tag }}
+                                    {{ form.additional_materials }}
                                 </div>
                                 <button type="submit" class="btn btn-primary w-80">Изменить</button>
                             </div>
@@ -47,13 +47,15 @@
                                     {{ form.grams_per_box }}
                                     {{ form.comment }}
                                 </div>
+                                <div class="mt-3">
+                                    <h6>Площадь коробки:</h6>
+                                    <p>{{ material_area }} м²</p>
+                                </div>
                             </div>
                         </div>
                     </form>
-
                 </div>
             </div>
-
         </div>
     </div>
     {% block dashboard %}

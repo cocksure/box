@@ -7,6 +7,7 @@ from django.db import models
 from apps.depo.models.stock import Stock
 from apps.shared.models import BaseModel
 from apps.users.models import CustomUser
+from django.core.validators import MinValueValidator
 
 
 class MaterialType(BaseModel):
@@ -29,7 +30,7 @@ class Material(BaseModel):
 		('litr', 'л'),
 	)
 
-	code = models.CharField(max_length=100, unique=True, verbose_name="Код")
+	code = models.CharField(max_length=100, unique=True, null=True, blank=True, verbose_name="Код")
 	name = models.CharField(max_length=100, unique=True, verbose_name="Название")
 	material_group = models.ForeignKey('MaterialGroup', on_delete=models.CASCADE, verbose_name="Группа материала")
 	special_group = models.ForeignKey('MaterialSpecialGroup', on_delete=models.CASCADE,
@@ -37,9 +38,17 @@ class Material(BaseModel):
 	brand = models.ForeignKey('Brand', on_delete=models.SET_NULL, null=True, verbose_name="Бренд")
 	material_type = models.ForeignKey(MaterialType, on_delete=models.CASCADE, max_length=100,
 									  verbose_name="Тип материала")
-	material_thickness = models.FloatField(verbose_name="Плотность(Г/м2)")
+	material_thickness = models.FloatField(verbose_name="Плотность(Г/м2)", null=True)
 	unit_of_measurement = models.CharField(max_length=10, choices=UNIT_CHOICES, default=None,
 										   verbose_name="Единица измерения")
+	norm = models.DecimalField(
+		max_digits=10,
+		decimal_places=2,
+		null=True,
+		blank=True,
+		verbose_name="Норма для 1 м2",
+		validators=[MinValueValidator(0)]
+	)
 	photo = models.ImageField(
 		upload_to='box_photos',
 		default='box_photos/no-image.png',
@@ -147,18 +156,25 @@ class Specification(BaseModel):
 
 
 class BoxSize(BaseModel):
-	name = models.CharField(max_length=100, verbose_name="Название")
+	name = models.CharField(max_length=100, null=True, blank=True, verbose_name="Название")
 
 	width = models.PositiveIntegerField(verbose_name="Ширина")
 	height = models.PositiveIntegerField(verbose_name="Высота")
 	length = models.PositiveIntegerField(verbose_name="Длина")
 
 	def save(self, *args, **kwargs):
-		self.name = f"{self.width}x{self.height}x{self.length} мм"
+		self.name = f"{self.length}x{self.width}x{self.height} мм"
 		super().save(*args, **kwargs)
 
+	def calculate_material_area(self, layers):
+		if layers == 3:
+			area = ((self.length + self.width) * 2 + 59) * (self.width + self.height + 8) / 1000000
+		else:  # for 5 layers
+			area = ((self.length + self.width) * 2 + 69) * (self.width + self.height + 16) / 1000000
+		return round(area, 3)
+
 	def __str__(self):
-		return f"{self.width}x{self.height}x{self.length}мм"
+		return f"{self.length}x{self.width}x{self.height} мм"
 
 	class Meta:
 		verbose_name = "Размер коробки"

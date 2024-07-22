@@ -1,6 +1,7 @@
 from django.core.validators import FileExtensionValidator, MinValueValidator
 from django.db import models
 
+from apps.depo.models.outgoing import OutgoingMaterial
 from apps.info.models import Material, BoxSize, BoxType, Firm, Specification
 from apps.shared.models import BaseModel
 from apps.users.models import CustomUser
@@ -30,6 +31,9 @@ class TypeWork(models.Model):
 		verbose_name_plural = "Типы работы"
 
 
+FORMAT_CHOICES = [(i, str(i)) for i in range(90, 176, 5)]
+
+
 class BoxModel(BaseModel):
 	CLOSURE_TYPE_CHOICES = (
 		(1, "Склейка"),
@@ -49,8 +53,16 @@ class BoxModel(BaseModel):
 		(5, "Антистатические свойства"),
 	)
 
+	LAYER_CHOICES = (
+		(3, '3 слоя'),
+		(5, '5 слоев'),
+	)
+
 	name = models.CharField(max_length=100, unique=True, verbose_name="Название")
-	material = models.ForeignKey(Material, on_delete=models.CASCADE, verbose_name="Материал")
+	material = models.ForeignKey(Material, on_delete=models.CASCADE, related_name='box_models', verbose_name="Материал")
+	additional_materials = models.ManyToManyField(Material, related_name='additional_box_models',
+												  verbose_name="Дополнительные материалы")
+
 	photo = models.ImageField(
 		upload_to='box_photos',
 		default='box_photos/box_foto.png',
@@ -71,8 +83,27 @@ class BoxModel(BaseModel):
 	max_load = models.CharField(max_length=50, blank=True, null=True, verbose_name="Максимальная нагрузка")
 	color = models.CharField(max_length=50, blank=True, null=True, verbose_name="Цвет")
 	comment = models.TextField(blank=True, null=True, verbose_name="Комментарий")
-	grams_per_box = models.DecimalField(max_digits=10, decimal_places=3, blank=True, null=True,
+	grams_per_box = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True,
 										verbose_name="Грамм на одну коробку")
+	format = models.IntegerField(choices=FORMAT_CHOICES, verbose_name="Формат", null=True, blank=True, default=90)
+	layers = models.IntegerField(choices=LAYER_CHOICES, default=3, verbose_name="Количество слоев")
+
+	def calculate_total_material_area(self):
+		if self.box_size:
+			return self.box_size.calculate_material_area(self.layers)
+		return None
+
+	def calculate_grams_per_box(self):
+		area = self.calculate_total_material_area()
+		if area and self.material and self.material.norm:
+			self.grams_per_box = area * self.material.norm
+		else:
+			self.grams_per_box = None
+		return self.grams_per_box
+
+	def save(self, *args, **kwargs):
+		self.calculate_grams_per_box()
+		super().save(*args, **kwargs)
 
 	class Meta:
 		ordering = ['-created_time']
@@ -97,6 +128,7 @@ class BoxOrder(BaseModel):
 
 	data = models.DateField(editable=True, verbose_name="Дата")
 	customer = models.ForeignKey(Firm, models.SET_NULL, verbose_name="Клиент", null=True)
+	buyer = models.ForeignKey(Firm, models.SET_NULL, related_name='buyers', verbose_name="Покупатель", null=True)
 	status = models.CharField(choices=BoxOrderStatus.choices, default=BoxOrderStatus.NEW, null=True, blank=True,
 							  max_length=20, verbose_name="Статус")
 	type_order = models.CharField(max_length=100, choices=BoxTypeOrder.choices, verbose_name="Тип заказа")
@@ -157,6 +189,14 @@ class ProductionOrder(BaseModel):
 	status = models.CharField(max_length=20, choices=ProductionOrderStatus.choices,
 							  default=ProductionOrderStatus.NOT_STARTED, verbose_name="Статус")
 	type_of_work = models.ForeignKey(TypeWork, on_delete=models.SET_NULL, null=True, verbose_name="Тип Работы")
+	outgoing_material = models.ForeignKey(
+		OutgoingMaterial,
+		on_delete=models.CASCADE,
+		related_name='production_orders_related',
+		verbose_name="Исходящая поставка",
+		null=True,
+		blank=True
+	)
 
 	def save(self, *args, **kwargs):
 		if not self.code:

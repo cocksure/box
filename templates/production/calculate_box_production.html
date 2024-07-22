@@ -1,0 +1,140 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Калькуляция коробки{% endblock title %}
+
+{% block content %}
+    <div class="container-fluid pt-4 px-4">
+        <div class="row g-4">
+            <div class="col-md-12 forma">
+                <div class="bg-light rounded h-100 p-4">
+                    <h6 class="mb-4">Калькуляция коробки</h6>
+                    {% include 'base/messages.html' %}
+                    <hr>
+                    <form method="post" action="{% url 'production:calculate_box_production' %}">
+                        {% csrf_token %}
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="mb-2">
+                                    <label for="material" class="form-label">Материал</label>
+                                    <select name="material" id="material" class="form-control">
+                                        {% for material in materials %}
+                                            {% if material.material_type.name != 'Готовый продукт' %}
+                                                <option value="{{ material.id }}">{{ material.name }}</option>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </select>
+
+                                </div>
+                                <div class="mb-2">
+                                    <label for="box_size" class="form-label">Размер коробки</label>
+                                    <select name="box_size" id="box_size" class="form-control">
+                                        {% for box_size in box_sizes %}
+                                            <option value="{{ box_size.id }}">{{ box_size.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="mb-2">
+                                    <label for="layers" class="form-label">Количество слоев</label>
+                                    <select name="layers" id="layers" class="form-control">
+                                        <option value="3">3 слоя</option>
+                                        <option value="5">5 слоев</option>
+                                    </select>
+                                </div>
+                                <div class="mb-2">
+                                    <label for="quantity" class="form-label">Количество заказов (необязательно)</label>
+                                    <input type="number" name="quantity" id="quantity" class="form-control" min="1"
+                                           value="1" placeholder="1">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-2">
+                                    <label for="norm_starch" class="form-label">Норма крахмала (1 м²)</label>
+                                    <input type="number" name="norm_starch" id="norm_starch" class="form-control"
+                                           step="0.001" required value="0.025" placeholder="0.025">
+                                </div>
+                                <div class="mb-2">
+                                    <label for="norm_glue" class="form-label">Норма клея (1 м²)</label>
+                                    <input type="number" name="norm_glue" id="norm_glue" class="form-control"
+                                           step="0.001" required
+                                           value="0.025" placeholder="0.025">
+
+                                </div>
+                                <div class="mb-2">
+                                    <label for="norm_paint" class="form-label">Норма краски (1 м²)</label>
+                                    <input type="number" name="norm_paint" id="norm_paint" class="form-control"
+                                           step="0.001" required value="0.025" placeholder="0.025">
+                                </div>
+                                <button type="submit" class="btn btn-primary w-100" style="margin-top: 32px">
+                                    Рассчитать
+                                </button>
+
+                            </div>
+                        </div>
+                    </form>
+                    <hr>
+                    <div class="row mt-4">
+                        <div class="col-md-6 text-center">
+                            <h6 class="mt-4">Площадь одного коробки</h6>
+                            {% if single_box_area %}
+                                <p>{{ single_box_area }} m²</p>
+                            {% else %}
+                                <p>Результаты не доступны</p>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6 text-center">
+                            <h6 class="mt-4">Общая площадь</h6>
+                            {% if total_area %}
+                                <p>{{ total_area }} m²</p>
+                            {% else %}
+                                <p>Результаты не доступны</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="row mt-4">
+                        <div class="col-md-3 text-center">
+                            <h6 class="mt-4">Расход материала</h6>
+                            {% if single_material_consumption and total_material_consumption %}
+                                <p>На один коробок: {{ single_material_consumption|floatformat:3 }} кг</p>
+                                <p>Общий расход: {{ total_material_consumption|floatformat:3 }} кг</p>
+                            {% else %}
+                                <p>Результаты не доступны</p>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-md-3 text-center">
+                            <h6 class="mt-4">Расход крахмала</h6>
+                            {% if single_starch_consumption and total_starch_consumption %}
+                                <p>На один коробок: {{ single_starch_consumption|floatformat:3 }} кг</p>
+                                <p>Общий расход: {{ total_starch_consumption|floatformat:3 }} кг</p>
+                            {% else %}
+                                <p>Результаты не доступны</p>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-3 text-center">
+                            <h6 class="mt-4">Расход клея</h6>
+                            {% if single_glue_consumption and total_glue_consumption %}
+                                <p>На один коробок: {{ single_glue_consumption|floatformat:3 }} кг</p>
+                                <p>Общий расход: {{ total_glue_consumption|floatformat:3 }} кг</p>
+                            {% else %}
+                                <p>Результаты не доступны</p>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-3 text-center">
+                            <h6 class="mt-4">Расход краски</h6>
+                            {% if single_paint_consumption and total_paint_consumption %}
+                                <p>На один коробок: {{ single_paint_consumption|floatformat:3 }} кг</p>
+                                <p>Общий расход: {{ total_paint_consumption|floatformat:3 }} кг</p>
+                            {% else %}
+                                <p>Результаты не доступны</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% block dashboard %}
+    {% endblock %}
+{% endblock %}

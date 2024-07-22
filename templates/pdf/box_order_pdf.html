@@ -88,7 +88,7 @@
             <th>Материал заказа</th>
             <th>Размер коробки</th>
             <th>Тип коробки</th>
-            <th>Цвет</th>
+            <th>Площадь коробки</th>
 
             <th>Количество заказа</th>
         </tr>
@@ -100,7 +100,7 @@
                 <td>{{ detail.box_model.material.name }}</td>
                 <td>{{ detail.box_model.box_size.name }}</td>
                 <td>{{ detail.box_model.box_type.name }}</td>
-                <td>{{ detail.box_model.color }}</td>
+                <td>{{ detail.box_model.calculate_total_material_area }}</td>
                 <td>{{ detail.amount }}</td>
             </tr>
         {% endfor %}

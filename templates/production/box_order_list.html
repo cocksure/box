@@ -19,13 +19,11 @@
                         <hr>
                     </div>
 
-
                     <!-- Search -->
                     <div class="row mb-3">
                         <div class="col-md-6">
                             <form class="d-flex">
-                                <input type="search" name="search" class="form-control me-2"
-                                       placeholder="Поиск">
+                                <input type="search" name="search" class="form-control me-2" placeholder="Поиск">
                                 <button type="submit" class="btn btn-outline-primary">Найти</button>
                             </form>
                         </div>
@@ -37,37 +35,35 @@
                                             <option value="all" {% if selected_status == 'all' %} selected {% endif %}>
                                                 Все
                                             </option>
-                                            <option value="НОВАЯ" {% if selected_status == 'НОВАЯ' %}
-                                                    selected {% endif %}>Новые
+                                            <option value="НОВАЯ" {% if selected_status == 'НОВАЯ' %} selected {% endif %}>
+                                                Новые
                                             </option>
-                                            <option value="Одобрено" {% if selected_status == 'Одобрено' %}
-                                                    selected {% endif %}>Одобренные
+                                            <option value="Одобрено" {% if selected_status == 'Одобрено' %} selected {% endif %}>
+                                                Одобренные
                                             </option>
-                                            <option value="Отклонено" {% if selected_status == 'Отклонено' %}
-                                                    selected {% endif %}>Отклоненные
+                                            <option value="Отклонено" {% if selected_status == 'Отклонено' %} selected {% endif %}>
+                                                Отклоненные
                                             </option>
                                         </select>
                                     </form>
                                 </div>
                                 <div class="col-md-6">
-                                    <form id="type_order-form" method="GET"
-                                          action="{% url 'production:box-order-list' %}">
+                                    <form id="type_order-form" method="GET" action="{% url 'production:box-order-list' %}">
                                         <select id="type_order-filter" name="type_order" class="form-select">
-                                            <option value="all" {% if selected_type_order == 'all' %}
-                                                    selected {% endif %}>Все
+                                            <option value="all" {% if selected_type_order == 'all' %} selected {% endif %}>
+                                                Все
                                             </option>
-                                            <option value="Образец" {% if selected_type_order == 'Образец' %}
-                                                    selected {% endif %}>Образец
+                                            <option value="Образец" {% if selected_type_order == 'Образец' %} selected {% endif %}>
+                                                Образец
                                             </option>
-                                            <option value="Экспорт" {% if selected_type_order == 'Экспорт' %}
-                                                    selected {% endif %}>Экспорт
+                                            <option value="Экспорт" {% if selected_type_order == 'Экспорт' %} selected {% endif %}>
+                                                Экспорт
                                             </option>
-                                            <option value="Внутренный рынок"
-                                                    {% if selected_type_order == 'Внутренный рынок' %}
-                                                    selected {% endif %}>Внутренный рынок
+                                            <option value="Внутренный рынок" {% if selected_type_order == 'Внутренный рынок' %} selected {% endif %}>
+                                                Внутренный рынок
                                             </option>
-                                            <option value="Услуга" {% if selected_type_order == 'Услуга' %}
-                                                    selected {% endif %}>Услуга
+                                            <option value="Услуга" {% if selected_type_order == 'Услуга' %} selected {% endif %}>
+                                                Услуга
                                             </option>
                                         </select>
                                     </form>
@@ -80,37 +76,37 @@
                     <div class="table-responsive">
                         <table class="table table-striped table-light table-hover">
                             <thead>
-                            <tr>
-                                <th scope="col">ID</th>
-                                <th scope="col">Заказчик</th>
-                                <th scope="col">Дата</th>
-                                <th scope="col">Статус</th>
-                                <th scope="col">Тип заказа</th>
-                                <th scope="col">Менеджер</th>
-                                <th scope="col">Действия</th>
-                            </tr>
+                                <tr>
+                                    <th scope="col">ID</th>
+                                    <th scope="col">Заказчик</th>
+                                    <th scope="col">Покупатель</th>
+                                    <th scope="col">Дата</th>
+                                    <th scope="col">Статус</th>
+                                    <th scope="col">Тип заказа</th>
+                                    <th scope="col">Менеджер</th>
+                                    <th scope="col">Действия</th>
+                                </tr>
                             </thead>
                             <tbody>
-                            {% for box_order in box_orders %}
-                                <tr>
-                                    <td>{{ box_order.id }}</td>
-                                    <td>{{ box_order.customer }}</td>
-                                    <td>{{ box_order.data }}</td>
-                                    <td>{{ box_order.status }}</td>
-                                    <td>{{ box_order.type_order }}</td>
-                                    <td>{{ box_order.manager }}</td>
-                                    <td>
-                                        <a href="{% url 'production:box-order-detail' box_order.pk %}"
-                                           class="btn btn-primary btn-sm">
-                                            <i class="bi bi-pencil-square"></i>
-                                        </a>
-                                        <a href="{% url 'production:generate_box_order_pdf' box_order.pk %}"
-                                           class="btn btn-primary btn-sm">
-                                            <i class="bi bi-file-earmark-arrow-down"></i>
-                                        </a>
-                                    </td>
-                                </tr>
-                            {% endfor %}
+                                {% for box_order in box_orders %}
+                                    <tr>
+                                        <td>{{ box_order.id }}</td>
+                                        <td>{{ box_order.customer }}</td>
+                                        <td>{{ box_order.buyer }}</td>
+                                        <td>{{ box_order.data }}</td>
+                                        <td>{{ box_order.status }}</td>
+                                        <td>{{ box_order.type_order }}</td>
+                                        <td>{{ box_order.manager }}</td>
+                                        <td>
+                                            <a href="{% url 'production:box-order-detail' box_order.pk %}" class="btn btn-primary btn-sm">
+                                                <i class="bi bi-pencil-square"></i>
+                                            </a>
+                                            <a href="{% url 'production:generate_box_order_pdf' box_order.pk %}" class="btn btn-primary btn-sm">
+                                                <i class="bi bi-file-earmark-arrow-down"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
                             </tbody>
                         </table>
                     </div>
@@ -123,7 +119,6 @@
             </div>
         </div>
     </div>
-
 
     {% block dashboard %}
     {% endblock %}
@@ -155,9 +150,5 @@
             typeOrderForm.submit();
         });
     </script>
-
-
-
-
 
 {% endblock %}

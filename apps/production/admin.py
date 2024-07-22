@@ -2,7 +2,7 @@ from django.contrib import admin
 
 from .forms import ProductionOrderForm, ProcessLogForm
 from .models import Process, BoxModel, BoxOrder, BoxOrderDetail, ProductionOrder, TypeWork, ProcessLog
-from ..depo.admin import OutgoingInline
+from ..depo.admin import OutgoingInline, OutgoingMaterialInline
 
 
 # @admin.register(UploadImage)
@@ -39,17 +39,20 @@ class TypeWorkAdmin(admin.ModelAdmin):
 @admin.register(BoxModel)
 class BoxModelAdmin(admin.ModelAdmin):
 	list_display = (
-		'name', 'material', 'box_size', 'box_type', 'photo', 'closure_type', 'additional_properties', 'max_load',
-		'color', 'grams_per_box', 'comment', 'created_by', 'updated_by', 'created_time')
+		'name', 'material', 'get_additional_materials', 'box_size', 'box_type', 'photo', 'closure_type',
+		'additional_properties',
+		'color', 'grams_per_box', 'comment', 'created_by', 'updated_by', 'created_time'
+	)
 	search_fields = ('name',)
 	list_filter = ('box_type',)
 
 	fieldsets = (
 		(None, {
 			'fields': (
-				'name', 'material', 'box_size', 'box_type', 'photo', 'closure_type', 'additional_properties',
-				'max_load',
-				'color', 'comment')
+				'name', 'material', 'additional_materials', 'box_size', 'box_type', 'photo', 'closure_type',
+				'additional_properties',
+				'color', 'comment'
+			)
 		}),
 		('Audit Information', {
 			'fields': ('created_by', 'updated_by', 'created_time'),
@@ -65,6 +68,11 @@ class BoxModelAdmin(admin.ModelAdmin):
 		else:  # Existing object
 			obj.updated_by = request.user
 		super().save_model(request, obj, form, change)
+
+	def get_additional_materials(self, obj):
+		return ", ".join([material.name for material in obj.additional_materials.all()])
+
+	get_additional_materials.short_description = 'Дополнительные материалы'
 
 
 @admin.register(BoxOrder)
@@ -89,7 +97,7 @@ class BoxOrderDetailAdmin(admin.ModelAdmin):
 class ProductionOrderAdmin(admin.ModelAdmin):
 	search_fields = ('code',)
 	list_display = ['code', 'box_order_detail', 'shipping_date', 'amount']
-	inlines = [OutgoingInline]
+	inlines = [OutgoingMaterialInline]
 
 
 def display_box_order_details(self, obj):

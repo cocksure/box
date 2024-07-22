@@ -28,8 +28,8 @@
                                     {{ form.customer }}
                                 </div>
                                 <div class="col-md-3">
-                                    <label for="{{ form.customer_buyer.id_for_label }}">Покупатель</label>
-                                    {{ form.customer_buyer }}
+                                    <label for="{{ form.buyer.id_for_label }}">Покупатель</label>
+                                    {{ form.buyer }}
                                 </div>
                                 <div class="col-md-2">
                                     <label for="{{ form.type_order.id_for_label }}">Тип заказа</label>
@@ -45,7 +45,6 @@
                                 </div>
                                 <input type="hidden" id="detail_counter" name="detail_counter" value="1">
                             </form>
-
                         </div>
                     </div>
 
@@ -103,7 +102,6 @@
             </div>
         </div>
     </div>
-
 
     {% block dashboard %}
     {% endblock %}
@@ -221,8 +219,5 @@
             });
         });
     </script>
-
-
-
 
 {% endblock %}

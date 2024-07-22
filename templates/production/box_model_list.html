@@ -22,7 +22,7 @@
                         </div>
                     </div>
 
-                    <!--  Modal -->
+                    <!-- Modal -->
                     <div class="modal fade" id="myModalCreate" tabindex="-1" role="dialog"
                          aria-labelledby="myModalLabelCreate">
                         <div class="modal-dialog modal-lg" role="document">
@@ -49,10 +49,13 @@
                                                     {{ form.color }}
                                                     {{ form.closure_type.label_tag }}
                                                     {{ form.closure_type }}
+                                                    {{ form.format.label_tag }}
+                                                    {{ form.format }}
+                                                    {{ form.layers.label_tag }}
+                                                    {{ form.layers }}
                                                     {{ form.additional_properties.label_tag }}
                                                     {{ form.additional_properties }}
                                                 </div>
-                                                <button type="submit" class="btn btn-primary w-100">Создать</button>
                                             </div>
                                             <div class="col-md-5 col-lg-5">
                                                 <div id="image-preview">
@@ -62,18 +65,22 @@
                                                 </div>
                                                 <div class="mt-3">
                                                     {{ form.photo }}
-                                                    {{ form.max_load }}
-                                                    {{ form.grams_per_box }}
+                                                    {{ form.additional_materials.label_tag }}
+                                                    {{ form.additional_materials }}
+
                                                     {{ form.comment }}
                                                 </div>
                                             </div>
+                                            <div class="col-12 text-center p-2">
+                                                <button type="submit" class="btn btn-primary w-100">Создать</button>
+                                            </div>
                                         </div>
                                     </form>
-
                                 </div>
                             </div>
                         </div>
                     </div>
+
 
                 </div>
 

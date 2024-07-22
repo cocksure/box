@@ -1,7 +1,7 @@
 from django.urls import path
 from .views import BoxModelListCreate, BoxModelEditView, BoxOrderListView, BoxOrderCreate, BoxOrderDetailView, \
 	ProductionOrderListView, process_log_view, ProcessLogListView, generate_box_order_pdf, \
-	generate_production_order_pdf, packaging_view
+	generate_production_order_pdf, packaging_view, calculate_box_production
 
 app_name = 'production'
 
@@ -20,5 +20,7 @@ urlpatterns = [
 	path('boxorder/<int:order_id>/pdf/', generate_box_order_pdf, name='generate_box_order_pdf'),
 	path('productionorder/<int:production_order_id>/pdf/', generate_production_order_pdf,
 		 name='generate_production_order_pdf'),
+
+	path('calculate-box-production/', calculate_box_production, name='calculate_box_production'),
 
 ]

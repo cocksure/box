@@ -18,7 +18,7 @@ class MaterialForm(forms.ModelForm):
 	class Meta:
 		model = Material
 		fields = ['name', 'material_group', 'special_group', 'brand', 'material_type', 'material_thickness',
-				  'unit_of_measurement', 'photo']
+				  'norm', 'unit_of_measurement', 'photo']
 		widgets = {
 			'code': forms.TextInput(attrs={'class': 'form-control'}),
 			'name': forms.TextInput(attrs={'class': 'form-control'}),
@@ -27,9 +27,11 @@ class MaterialForm(forms.ModelForm):
 			'brand': forms.Select(attrs={'class': 'form-control'}),
 			'material_type': forms.Select(attrs={'class': 'form-control'}),
 			'material_thickness': forms.NumberInput(attrs={'class': 'form-control'}),
+			'norm': forms.NumberInput(attrs={'class': 'form-control'}),
 			'unit_of_measurement': forms.Select(attrs={'class': 'form-control'}),
 			'photo': forms.FileInput(attrs={'class': 'form-control'}),
 		}
+
 
 
 class WarehouseForm(forms.ModelForm):
@@ -84,16 +86,16 @@ class SpecificationForm(forms.ModelForm):
 class BoxSizesForm(forms.ModelForm):
 	class Meta:
 		model = BoxSize
-		fields = ['width', 'height', 'length']
+		fields = ['length', 'width', 'height', ]
 		widgets = {
+			'length': forms.NumberInput(attrs={'class': 'form-control'}),
 			'width': forms.NumberInput(attrs={'class': 'form-control'}),
 			'height': forms.NumberInput(attrs={'class': 'form-control'}),
-			'length': forms.NumberInput(attrs={'class': 'form-control'}),
 		}
 		labels = {
+			'length': 'Длина (в мм)',
 			'width': 'Ширина (в мм)',
 			'height': 'Высота (в мм)',
-			'length': 'Длина (в мм)',
 		}
 
 
