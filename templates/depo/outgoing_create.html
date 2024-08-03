@@ -19,27 +19,7 @@
                             </div>
                             <hr class="my-0">
 
-                            {% if messages %}
-                                <div class="col-md-12 mt-2" id="error-message">
-                                    {% for message in messages %}
-                                        <div class="alert alert-danger alert-dismissible fade show {% if message.tags %}alert-{{ message.tags }}{% endif %}"
-                                             role="alert">
-                                            {% if message == 'Недостаточно материалов на складе' %}
-                                                {{ message }}
-                                                <ul>
-                                                    {% for material, amount in request.session.insufficient_materials %}
-                                                        <li>{{ material }}: {{ amount }}</li>
-                                                    {% endfor %}
-                                                </ul>
-                                            {% else %}
-                                                {{ message }}
-                                            {% endif %}
-                                            <button type="button" class="btn-close" data-bs-dismiss="alert"
-                                                    aria-label="Close"></button>
-                                        </div>
-                                    {% endfor %}
-                                </div>
-                            {% endif %}
+                           
 
                         </div>
 

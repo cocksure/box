@@ -6,6 +6,7 @@ from django.db.models import Sum
 from datetime import date
 
 from apps.depo.models.outgoing import Outgoing
+from django.views.decorators.cache import cache_page
 
 
 @login_required

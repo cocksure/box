@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from django.core.validators import FileExtensionValidator, MinValueValidator
 from django.db import models
 
@@ -20,15 +22,15 @@ class Process(models.Model):
 
 
 class TypeWork(models.Model):
-	name = models.CharField(max_length=100, unique=True, verbose_name="Тип работы")
+	name = models.CharField(max_length=100, unique=True, verbose_name="Вид работы")
 	process = models.ManyToManyField(Process, verbose_name="Процесс")
 
 	def __str__(self):
 		return self.name
 
 	class Meta:
-		verbose_name = "Тип работы"
-		verbose_name_plural = "Типы работы"
+		verbose_name = "Вид работы"
+		verbose_name_plural = "Виды работ"
 
 
 FORMAT_CHOICES = [(i, str(i)) for i in range(90, 176, 5)]
@@ -60,7 +62,7 @@ class BoxModel(BaseModel):
 
 	name = models.CharField(max_length=100, unique=True, verbose_name="Название")
 	material = models.ForeignKey(Material, on_delete=models.CASCADE, related_name='box_models', verbose_name="Материал")
-	additional_materials = models.ManyToManyField(Material, related_name='additional_box_models',
+	additional_materials = models.ManyToManyField(Material, related_name='additional_box_models', blank=True,
 												  verbose_name="Дополнительные материалы")
 
 	photo = models.ImageField(
@@ -96,7 +98,7 @@ class BoxModel(BaseModel):
 	def calculate_grams_per_box(self):
 		area = self.calculate_total_material_area()
 		if area and self.material and self.material.norm:
-			self.grams_per_box = area * self.material.norm
+			self.grams_per_box = Decimal(area) * Decimal(self.material.norm)
 		else:
 			self.grams_per_box = None
 		return self.grams_per_box

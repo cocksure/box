@@ -88,3 +88,19 @@ class OutgoingMaterialForm(forms.ModelForm):
 
 OutgoingMaterialFormSet = inlineformset_factory(Outgoing, OutgoingMaterial, form=OutgoingMaterialForm, extra=1)
 IncomingMaterialFormSet = inlineformset_factory(Incoming, IncomingMaterial, form=IncomingMaterialForm, extra=1)
+
+
+class MaterialCodeForm(forms.Form):
+	material_code = forms.CharField(
+		label='Код материала',
+		max_length=100,
+		widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Введите код материала'})
+	)
+
+
+class SaleForm(forms.Form):
+	quantity = forms.IntegerField(
+		label='Количество',
+		min_value=1,
+		widget=forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Введите количество'})
+	)

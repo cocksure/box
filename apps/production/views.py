@@ -1,4 +1,4 @@
-from decimal import Decimal
+from decimal import Decimal, ROUND_HALF_UP
 
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -201,10 +201,11 @@ class BoxOrderDetailView(DetailView):
 					production_order = form.save(commit=False)
 					production_order.box_order_detail = detail
 					production_order.amount = detail.amount
+					production_order.created_by = request.user
 					production_order.save()
 
 					# Создаем запись о расходе
-					warehouse_id = 1
+					warehouse_id = 3  # Расход из сурового склада
 					try:
 						warehouse = Warehouse.objects.get(pk=warehouse_id)
 					except Warehouse.DoesNotExist:
@@ -422,7 +423,7 @@ def packaging_view(request):
 							production_order.status = ProductionOrder.ProductionOrderStatus.PACKED
 							production_order.save()
 
-							warehouse_id = 2
+							warehouse_id = 4  # Приход на готовый склад
 							try:
 								warehouse = Warehouse.objects.get(pk=warehouse_id)
 							except Warehouse.DoesNotExist:
@@ -442,7 +443,7 @@ def packaging_view(request):
 							finished_material, created = Material.objects.get_or_create(
 								name=finished_material_name,
 								defaults={
-									'code': f'FIN_{production_order.box_order_detail.box_model.name}',
+									'code': production_order.code,
 									'material_group': raw_material.material_group,
 									'special_group': raw_material.special_group,
 									'brand': raw_material.brand,
@@ -488,47 +489,64 @@ def calculate_box_production(request):
 	if request.method == 'POST':
 		material_id = request.POST.get('material')
 		box_size_id = request.POST.get('box_size')
-		layers = int(request.POST.get('layers'))
-		quantity = request.POST.get('quantity')
-		norm_starch = float(request.POST.get('norm_starch', 0.025))
-		norm_glue = float(request.POST.get('norm_glue', 0.025))
-		norm_paint = float(request.POST.get('norm_paint', 0.025))
+		layers = int(request.POST.get('layers', 1))
+		quantity = request.POST.get('quantity', 1)  # Обязательно извлеките значение quantity
+		norm_starch = Decimal(request.POST.get('norm_starch', '0.025'))
+		norm_glue = Decimal(request.POST.get('norm_glue', '0.025'))
+		norm_paint = Decimal(request.POST.get('norm_paint', '0.025'))
 
-		quantity = int(quantity) if quantity else None
+		quantity = int(quantity) if quantity else 1
 
 		material = get_object_or_404(Material, id=material_id)
 		box_size = get_object_or_404(BoxSize, id=box_size_id)
 
-		calculator = BoxProductionCalculation(material, box_size, layers, quantity, norm_starch, norm_glue, norm_paint)
+		calculator = BoxProductionCalculation(
+			material, box_size, layers, quantity, norm_starch, norm_glue, norm_paint
+		)
 
 		# Calculate results
-		single_box_area = calculator.calculate_single_box_area()
-		total_area = calculator.calculate_total_area()
-		single_starch_consumption, total_starch_consumption = calculator.calculate_starch_consumption()
-		single_glue_consumption, total_glue_consumption = calculator.calculate_glue_consumption()
-		single_paint_consumption, total_paint_consumption = calculator.calculate_paint_consumption()
-
-		# Calculate material consumption using the material_consumption method
-		single_material_consumption, total_material_consumption = calculator.material_consumption()
+		single_box_area = calculator.calculate_single_box_area().quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+		total_area = calculator.calculate_total_area().quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+		single_starch_consumption, total_starch_consumption = map(
+			lambda x: x.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP),
+			calculator.calculate_starch_consumption()
+		)
+		single_glue_consumption, total_glue_consumption = map(
+			lambda x: x.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP),
+			calculator.calculate_glue_consumption()
+		)
+		single_paint_consumption, total_paint_consumption = map(
+			lambda x: x.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP),
+			calculator.calculate_paint_consumption()
+		)
+		single_material_consumption, total_material_consumption = map(
+			lambda x: x.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP),
+			calculator.material_consumption()
+		)
 
 		# Populate context with results
-		context['single_box_area'] = single_box_area
-		context['total_area'] = total_area
-		context['single_starch_consumption'] = single_starch_consumption
-		context['total_starch_consumption'] = total_starch_consumption
-		context['single_glue_consumption'] = single_glue_consumption
-		context['total_glue_consumption'] = total_glue_consumption
-		context['single_paint_consumption'] = single_paint_consumption
-		context['total_paint_consumption'] = total_paint_consumption
-		context['single_material_consumption'] = single_material_consumption
-		context['total_material_consumption'] = total_material_consumption
+		context.update({
+			'single_box_area': single_box_area,
+			'total_area': total_area,
+			'single_starch_consumption': single_starch_consumption,
+			'total_starch_consumption': total_starch_consumption,
+			'single_glue_consumption': single_glue_consumption,
+			'total_glue_consumption': total_glue_consumption,
+			'single_paint_consumption': single_paint_consumption,
+			'total_paint_consumption': total_paint_consumption,
+			'single_material_consumption': single_material_consumption,
+			'total_material_consumption': total_material_consumption,
+			'quantity': quantity  # Добавляем quantity в контекст
+		})
 
 	# Fetch all materials and box sizes for the form
 	materials = Material.objects.all()
 	box_sizes = BoxSize.objects.all()
 
-	context['materials'] = materials
-	context['box_sizes'] = box_sizes
+	context.update({
+		'materials': materials,
+		'box_sizes': box_sizes
+	})
 
 	return render(request, 'production/calculate_box_production.html', context)
 

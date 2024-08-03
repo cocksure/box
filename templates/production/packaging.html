@@ -22,7 +22,6 @@
                             <form method="post">
                                 {% csrf_token %}
                                 {{ code_form.as_p }}
-{#                                <button class="btn btn-outline-primary" type="submit">Найти заказ</button>#}
                             </form>
 
                             {% if remaining_to_pack is not None %}

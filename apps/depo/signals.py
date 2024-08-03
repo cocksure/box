@@ -1,11 +1,14 @@
+from decimal import Decimal
+
+from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models.signals import post_delete, pre_save, post_save
 from django.dispatch import receiver
 from django.db.models import F
 from .models import outgoing
-from .models.incoming import IncomingMaterial
-from .models.outgoing import OutgoingMaterial
+from .models.incoming import IncomingMaterial, Incoming
+from .models.outgoing import OutgoingMaterial, Outgoing
 from .models.stock import Stock
 from ..info.models import Warehouse
 
@@ -57,14 +60,25 @@ def update_stock_after_OutgoingMaterial_deletion(sender, instance, **kwargs):
 
 @receiver(pre_save, sender=OutgoingMaterial)
 def check_stock(sender, instance, **kwargs):
-	if instance.outgoing.warehouse.use_negative == False:
+	if not instance.outgoing.warehouse.use_negative:
 		stock = Stock.objects.filter(material=instance.material, warehouse=instance.outgoing.warehouse).first()
-		if stock is None or stock.amount < float(instance.amount):
-			# Определяем доступное количество материала на складе
-			available_amount = 0 if stock is None else stock.amount
+		if stock is None or stock.amount < Decimal(instance.amount):
+			available_amount = Decimal('0') if stock is None else stock.amount
 
-			# Формируем сообщение об ошибке с информацией о доступном количестве материала
 			error_message = f"Недостаточно материала на складе. Доступно: {available_amount} {instance.material.unit_of_measurement}"
 
-			# Поднимаем исключение ValidationError с сообщением об ошибке
 			raise ValidationError(error_message)
+
+
+@receiver(post_save, sender=Incoming)
+@receiver(post_delete, sender=Incoming)
+def clear_incoming_cache(sender, **kwargs):
+	cache_key = 'incoming_list_data'
+	cache.delete(cache_key)
+
+
+@receiver(post_save, sender=Outgoing)
+@receiver(post_delete, sender=Outgoing)
+def clear_outgoing_cache(sender, **kwargs):
+	cache_key = 'outgoing_list_data'
+	cache.delete(cache_key)

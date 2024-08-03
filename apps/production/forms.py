@@ -35,7 +35,7 @@ class BoxModelForm(forms.ModelForm):
 				attrs={'class': 'form-control mb-3', 'placeholder': 'Введите максимальную нагрузку'}),
 			'grams_per_box': forms.NumberInput(
 				attrs={'class': 'form-control mb-3', 'placeholder': 'Грамм на одну коробку'}),
-			'additional_materials': forms.SelectMultiple(attrs={'class': 'form-control mb-3'}),
+			'additional_materials': forms.SelectMultiple(attrs={'class': 'form-control mb-3 custom-select'}),
 			'comment': forms.Textarea(
 				attrs={'class': 'form-control mb-2', 'rows': 3, 'placeholder': 'Введите комментарий'}),
 			'photo': forms.ClearableFileInput(attrs={'class': 'form-control mb-3', 'id': 'photo', 'name': 'photo'}),
@@ -43,8 +43,9 @@ class BoxModelForm(forms.ModelForm):
 
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
-		self.fields['material'].queryset = Material.objects.exclude(material_type=2)
-		self.fields['additional_materials'].queryset = Material.objects.exclude(material_type=2)
+		self.fields['material'].queryset = Material.objects.exclude(material_type=2)  # Готовый продукт
+		self.fields['additional_materials'].queryset = Material.objects.exclude(
+			material_group=4)  # Группа материала сырьё
 		self.fields['box_size'].queryset = BoxSize.objects.all()
 		self.fields['box_type'].queryset = BoxType.objects.all()
 

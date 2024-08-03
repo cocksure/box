@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Продажа{% endblock title %}
+
+{% block content %}
+
+    <div class="container-fluid pt-4">
+        <div class="row g-4">
+            <div class="col-md-12">
+                <div class="bg-light rounded p-4">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h2>Оформление продажи</h2>
+                        </div>
+                        <hr>
+
+                        <div class="row">
+                            {% if remaining_to_pack is None %}
+                                <!-- Form to input material code -->
+                                <form method="post">
+                                    {% csrf_token %}
+                                    {{ code_form.as_p }}
+                                    <button class="btn btn-outline-primary" type="submit" name="check_code">Проверить
+                                        материал
+                                    </button>
+                                </form>
+                            {% else %}
+                                <!-- Display material information -->
+                                <div class="alert alert-info">
+                                    <strong>Материал:</strong> {{ material_info.name }}<br>
+                                    <strong>Доступное количество:</strong> {{ material_info.available_amount }}
+                                </div>
+                                <!-- Form to input quantity after material is validated -->
+                                <form method="post">
+                                    {% csrf_token %}
+                                    {{ amount_form.as_p }}
+                                    <input type="hidden" name="material_code" value="{{ request.POST.material_code }}">
+                                    <button class="btn btn-outline-primary" type="submit" name="submit_sale">Продать
+                                    </button>
+                                </form>
+                            {% endif %}
+
+                            {% include 'base/messages.html' %}
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% block dashboard %}
+    {% endblock dashboard %}
+
+{% endblock content %}

@@ -27,6 +27,7 @@ INSTALLED_APPS = [
 	'allauth',
 	'allauth.account',
 	'allauth.socialaccount',
+	'ratelimit',
 
 	# local apps
 	'apps.users',
@@ -51,6 +52,13 @@ AUTHENTICATION_BACKENDS = [
 ]
 AUTH_USER_MODEL = 'users.CustomUser'
 
+CACHES = {
+	'default': {
+		'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+		'LOCATION': 'unique-snowflake',
+	}
+}
+
 MIDDLEWARE = [
 	'django.middleware.security.SecurityMiddleware',
 	'django.contrib.sessions.middleware.SessionMiddleware',
@@ -61,6 +69,7 @@ MIDDLEWARE = [
 	'django.contrib.messages.middleware.MessageMiddleware',
 	'django.middleware.clickjacking.XFrameOptionsMiddleware',
 	'allauth.account.middleware.AccountMiddleware',
+	'config.ratelimit_middleware.RateLimitMiddleware',
 
 ]
 

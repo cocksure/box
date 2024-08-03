@@ -13,29 +13,27 @@
     z-index: 99;
 }
 
-
 /*** Spinner ***/
 #spinner {
     opacity: 0;
     visibility: hidden;
-    transition: opacity .5s ease-out, visibility 0s linear .5s;
+    transition: opacity 0.5s ease-out, visibility 0s linear 0.5s;
     z-index: 99999;
 }
 
 #spinner.show {
-    transition: opacity .5s ease-out, visibility 0s linear 0s;
+    transition: opacity 0.5s ease-out, visibility 0s linear 0s;
     visibility: visible;
     opacity: 1;
 }
 
-
 /*** Button ***/
 .btn {
-    transition: .5s;
+    transition: 0.5s;
 }
 
 .btn.btn-primary {
-    color: #FFFFFF;
+    color: #ffffff;
 }
 
 .btn-square {
@@ -64,7 +62,6 @@
     border-radius: 50px;
 }
 
-
 /*** Layout ***/
 .sidebar {
     position: fixed;
@@ -82,7 +79,7 @@
 .content {
     margin-left: 250px;
     min-height: 100vh;
-    background: #FFFFFF;
+    background: #ffffff;
     transition: 0.5s;
 }
 
@@ -120,7 +117,6 @@
     }
 }
 
-
 /*** Navbar ***/
 .sidebar .navbar .navbar-nav .nav-link {
     padding: 7px 20px;
@@ -132,14 +128,12 @@
 }
 
 .active {
-    background-color: lightgray;
+    background: lightgray;
     border-radius: 7px;
 }
 
 .sidebar .navbar .navbar-nav .nav-link:hover,
 .sidebar .navbar .navbar-nav .nav-link.active {
-    /*color: darkgreen;*/
-    /*background: #e9ecef;*/
     border-color: var(--primary);
 }
 
@@ -149,7 +143,7 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    background: #FFFFFF;
+    background: #ffffff;
     border-radius: 40px;
 }
 
@@ -166,17 +160,18 @@
     content: "\f107";
     font-family: "Font Awesome 5 Free";
     font-weight: 900;
-    transition: .5s;
+    transition: 0.5s;
 }
 
-.sidebar .navbar .dropdown-toggle[aria-expanded=true]::after {
+.sidebar .navbar .dropdown-toggle[aria-expanded="true"]::after {
     transform: rotate(-180deg);
 }
 
 .sidebar .navbar .dropdown-item {
     padding-left: 25px;
-    border-radius: 0 30px 30px 0;
+    border-radius: 0 7px 7px 0;
     transition: font-size 0.4s ease;
+    background-color: white;
 }
 
 .nav-item.dropdown .nav-link {
@@ -192,7 +187,6 @@
     font-size: 18px;
 }
 
-
 .content .navbar .navbar-nav .nav-link {
     margin-left: 25px;
     padding: 12px 0;
@@ -200,10 +194,6 @@
     outline: none;
 }
 
-.content .navbar .navbar-nav .nav-link:hover,
-.content .navbar .navbar-nav .nav-link.active {
-    color: var(--primary);
-}
 
 .content .navbar .sidebar-toggler,
 .content .navbar .navbar-nav .nav-link i {
@@ -212,7 +202,7 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    background: #FFFFFF;
+    background: #ffffff;
     border-radius: 25px;
 }
 
@@ -223,10 +213,10 @@
     content: "\f107";
     font-family: "Font Awesome 5 Free";
     font-weight: 900;
-    transition: .5s;
+    transition: 0.5s;
 }
 
-.content .navbar .dropdown-toggle[aria-expanded=true]::after {
+.content .navbar .dropdown-toggle[aria-expanded="true"]::after {
     transform: rotate(-180deg);
 }
 
@@ -235,7 +225,6 @@
         margin-left: 15px;
     }
 }
-
 
 /*** Date Picker ***/
 .bootstrap-datetimepicker-widget.bottom {
@@ -250,11 +239,16 @@
     font-weight: 500;
 }
 
+
 .bootstrap-datetimepicker-widget.dropdown-menu {
     padding: 10px;
     border-radius: 2px;
 }
 
+.dropdown-menu a {
+    color: dimgray;
+
+}
 
 .bootstrap-datetimepicker-widget table td.active,
 .bootstrap-datetimepicker-widget table td.active:hover {
@@ -265,13 +259,11 @@
     border-bottom-color: var(--primary);
 }
 
-
-/*** Testimonial ***/
+/*** Progress ***/
 .progress .progress-bar {
     width: 0px;
     transition: 2s;
 }
-
 
 /*** Testimonial ***/
 .testimonial-carousel .owl-dots {
@@ -289,7 +281,7 @@
     height: 15px;
     border: 5px solid var(--primary);
     border-radius: 15px;
-    transition: .5s;
+    transition: 0.5s;
 }
 
 .testimonial-carousel .owl-dot.active {
@@ -304,7 +296,7 @@
 }
 
 .pagination .page-item .page-link {
-    background-color: #6f00ff;
+    background-color: var(--primary);
     color: white;
 }
 
@@ -326,6 +318,10 @@
 .status-in-progress {
     color: mediumseagreen;
     font-weight: bold;
+}
 
+.custom-select {
+    height: 160px; /* Установите нужную высоту */
+    overflow-y: auto; /* Добавляет прокрутку при необходимости */
 }
 

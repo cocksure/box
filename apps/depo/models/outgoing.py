@@ -21,7 +21,7 @@ class Outgoing(BaseModel):
 	code = models.CharField(max_length=10, unique=True, editable=False, verbose_name="Код")
 	data = models.DateField(editable=True, verbose_name="Дата")
 	outgoing_type = models.CharField(max_length=20, choices=OutgoingType.choices, default=OutgoingType.MOVEMENT,
-									 verbose_name="Тип исхода")
+									 verbose_name="Тип расхода")
 	warehouse = models.ForeignKey(Warehouse, on_delete=models.CASCADE, related_name='outgoing_warehouse',
 								  verbose_name="Склад")
 	to_warehouse = models.ForeignKey(Warehouse, on_delete=models.CASCADE, null=True, blank=True,

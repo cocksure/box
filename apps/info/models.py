@@ -30,20 +30,28 @@ class Material(BaseModel):
 		('litr', 'л'),
 	)
 
+	TYPE_MATERIAL_CHOICES = (
+		('material', 'Материал'),
+		('ready_material', 'Готовый продукт	')
+	)
+
 	code = models.CharField(max_length=100, unique=True, null=True, blank=True, verbose_name="Код")
 	name = models.CharField(max_length=100, unique=True, verbose_name="Название")
 	material_group = models.ForeignKey('MaterialGroup', on_delete=models.CASCADE, verbose_name="Группа материала")
-	special_group = models.ForeignKey('MaterialSpecialGroup', on_delete=models.CASCADE,
+	special_group = models.ForeignKey('MaterialSpecialGroup', on_delete=models.CASCADE, null=True, blank=True,
 									  verbose_name="Специальная группа")
-	brand = models.ForeignKey('Brand', on_delete=models.SET_NULL, null=True, verbose_name="Бренд")
-	material_type = models.ForeignKey(MaterialType, on_delete=models.CASCADE, max_length=100,
+	brand = models.ForeignKey('Brand', on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Бренд")
+	material_type = models.ForeignKey(MaterialType, on_delete=models.CASCADE, default=5, max_length=100,
+									  null=True, blank=True,
 									  verbose_name="Тип материала")
-	material_thickness = models.FloatField(verbose_name="Плотность(Г/м2)", null=True)
+	material_thickness = models.FloatField(verbose_name="Плотность(Г/м2)", null=True, blank=True)
 	unit_of_measurement = models.CharField(max_length=10, choices=UNIT_CHOICES, default=None,
 										   verbose_name="Единица измерения")
+	type_material = models.CharField(max_length=20, choices=TYPE_MATERIAL_CHOICES, default="material", null=True,
+									 blank=True)
 	norm = models.DecimalField(
 		max_digits=10,
-		decimal_places=2,
+		decimal_places=3,
 		null=True,
 		blank=True,
 		verbose_name="Норма для 1 м2",
@@ -55,6 +63,9 @@ class Material(BaseModel):
 		validators=[FileExtensionValidator(allowed_extensions=['jpg', 'jpeg', 'png', 'heic'])],
 		verbose_name="Изображение"
 	)
+
+	def get_unit_display(self):
+		return dict(self.UNIT_CHOICES).get(self.unit_of_measurement, self.unit_of_measurement)
 
 	def __str__(self):
 		return self.name

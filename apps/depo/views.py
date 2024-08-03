@@ -1,20 +1,20 @@
-from django.contrib import messages
-from django.db.models import Q
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse_lazy, reverse
 from django.utils import timezone
 from django.db import transaction
-from django.http import JsonResponse, HttpResponseRedirect, request
+from django.http import JsonResponse, HttpResponseRedirect
 from django.views import View
 from django.views.generic import DetailView, CreateView
 
-from apps.depo.forms import IncomingForm, IncomingMaterialFormSet, OutgoingMaterialFormSet, OutgoingForm
+from apps.depo.forms import IncomingForm, IncomingMaterialFormSet, OutgoingMaterialFormSet, OutgoingForm, SaleForm, \
+	MaterialCodeForm
 from apps.depo.models.incoming import Incoming, IncomingMaterial
 from apps.depo.models.outgoing import OutgoingMaterial, Outgoing
 from apps.depo.models.stock import Stock
-from apps.info.models import Material, Warehouse
+from apps.info.models import Material, Warehouse, MaterialType
 
 from apps.shared.views import BaseListView
+from django.contrib import messages
 
 
 class IncomingListView(BaseListView):
@@ -37,6 +37,7 @@ class StockListView(BaseListView):
 	def get(self, request):
 		queryset = Stock.objects.all()
 		warehouse_id = request.GET.get('warehouse_id')
+		material_type_id = request.GET.get('material_type')
 
 		if warehouse_id:
 			queryset = queryset.filter(warehouse_id=warehouse_id)
@@ -44,15 +45,23 @@ class StockListView(BaseListView):
 		else:
 			selected_warehouse_id = ""
 
+		if material_type_id:
+			queryset = queryset.filter(material__material_type=material_type_id)
+			selected_material_type_id = material_type_id
+		else:
+			selected_material_type_id = ""
+
 		warehouses = Warehouse.objects.all()
+		material_types = MaterialType.objects.all()
 
 		page_obj = self.apply_pagination_and_search(queryset, request)
 
 		context = {
 			'items': page_obj,
 			'warehouses': warehouses,
+			'material_types': material_types,
 			'selected_warehouse_id': selected_warehouse_id,
-
+			'selected_material_type_id': selected_material_type_id,
 		}
 		return render(request, self.template_name, context)
 
@@ -248,9 +257,6 @@ class IncomingCreate(CreateView):
 		return context
 
 
-from django.contrib import messages
-
-
 class OutgoingCreate(CreateView):
 	model = Outgoing
 	form_class = OutgoingForm
@@ -349,3 +355,81 @@ class OutgoingCreate(CreateView):
 			stocks_to_update.append(stock)
 
 		Stock.objects.bulk_update(stocks_to_update, ['amount'])
+
+
+def sale_create_view(request):
+    code_form = MaterialCodeForm()
+    amount_form = SaleForm()
+    remaining_to_pack = None
+    material_info = None
+
+    if request.method == 'POST':
+        if 'check_code' in request.POST:
+            code_form = MaterialCodeForm(request.POST)
+            if code_form.is_valid():
+                material_code = code_form.cleaned_data['material_code']
+                try:
+                    material = Material.objects.get(code=material_code, material_type_id=2)
+                    stock = Stock.objects.get(material=material)
+                    remaining_to_pack = stock.amount
+                    material_info = {
+                        'name': material.name,
+                        'available_amount': stock.amount,
+                    }
+                except Material.DoesNotExist:
+                    messages.error(request, 'Материал не найден или не подходит.')
+                except Stock.DoesNotExist:
+                    messages.error(request, 'Материал отсутствует на складе.')
+
+                return render(request, 'depo/sale_create.html', {
+                    'code_form': code_form,
+                    'amount_form': amount_form,
+                    'remaining_to_pack': remaining_to_pack,
+                    'material_info': material_info
+                })
+        elif 'submit_sale' in request.POST:
+            amount_form = SaleForm(request.POST)
+            if amount_form.is_valid():
+                quantity = amount_form.cleaned_data['quantity']
+                material_code = request.POST.get('material_code')
+
+                try:
+                    material = Material.objects.get(code=material_code, material_type_id=2)
+                    stock = Stock.objects.get(material=material)
+
+                    if stock.amount < quantity:
+                        messages.error(request, 'Недостаточно материалов на складе.')
+                        return redirect('depo:sale-create')
+
+                    # Create outgoing record
+                    with transaction.atomic():
+                        outgoing = Outgoing.objects.create(
+                            data=timezone.now(),
+                            outgoing_type=Outgoing.OutgoingType.SALE,
+                            warehouse=stock.warehouse,
+                            created_by=request.user
+                        )
+
+                        OutgoingMaterial.objects.create(
+                            outgoing=outgoing,
+                            material=material,
+                            amount=quantity
+                        )
+
+                        # Update stock
+                        stock.amount -= quantity
+                        stock.save()
+
+                        messages.success(request, 'Продажа успешно оформлена.')
+                        return redirect('depo:sale-create')  # Redirect to a success page or another view
+                except (Material.DoesNotExist, Stock.DoesNotExist):
+                    messages.error(request, 'Ошибка при обработке продажи.')
+            else:
+                messages.error(request, 'Пожалуйста, исправьте ошибки в форме.')
+
+    return render(request, 'depo/sale_create.html', {
+        'code_form': code_form,
+        'amount_form': amount_form,
+        'remaining_to_pack': remaining_to_pack,
+        'material_info': material_info
+    })
