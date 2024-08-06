@@ -128,7 +128,7 @@
 }
 
 .active {
-    font-weight: bold;
+    background: lightgray;
     border-radius: 7px;
 }
 
@@ -169,7 +169,7 @@
 
 .sidebar .navbar .dropdown-item {
     padding-left: 25px;
-    border-radius: 0 10px 10px 0;
+    border-radius: 0 7px 7px 0;
     transition: font-size 0.4s ease;
     background-color: white;
 }
@@ -319,3 +319,9 @@
     color: mediumseagreen;
     font-weight: bold;
 }
+
+.custom-select {
+    height: 160px; /* Установите нужную высоту */
+    overflow-y: auto; /* Добавляет прокрутку при необходимости */
+}
+

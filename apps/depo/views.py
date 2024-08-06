@@ -2,7 +2,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse_lazy, reverse
 from django.utils import timezone
 from django.db import transaction
-from django.http import JsonResponse, HttpResponseRedirect
+from django.http import JsonResponse, HttpResponseRedirect, HttpResponse
 from django.views import View
 from django.views.generic import DetailView, CreateView
 
@@ -15,6 +15,8 @@ from apps.info.models import Material, Warehouse, MaterialType
 
 from apps.shared.views import BaseListView
 from django.contrib import messages
+from django.template.loader import render_to_string
+from weasyprint import HTML
 
 
 class IncomingListView(BaseListView):
@@ -358,78 +360,128 @@ class OutgoingCreate(CreateView):
 
 
 def sale_create_view(request):
-    code_form = MaterialCodeForm()
-    amount_form = SaleForm()
-    remaining_to_pack = None
-    material_info = None
+	code_form = MaterialCodeForm()
+	amount_form = SaleForm()
+	remaining_to_pack = None
+	material_info = None
 
-    if request.method == 'POST':
-        if 'check_code' in request.POST:
-            code_form = MaterialCodeForm(request.POST)
-            if code_form.is_valid():
-                material_code = code_form.cleaned_data['material_code']
-                try:
-                    material = Material.objects.get(code=material_code, material_type_id=2)
-                    stock = Stock.objects.get(material=material)
-                    remaining_to_pack = stock.amount
-                    material_info = {
-                        'name': material.name,
-                        'available_amount': stock.amount,
-                    }
-                except Material.DoesNotExist:
-                    messages.error(request, 'Материал не найден или не подходит.')
-                except Stock.DoesNotExist:
-                    messages.error(request, 'Материал отсутствует на складе.')
+	if request.method == 'POST':
+		if 'check_code' in request.POST:
+			code_form = MaterialCodeForm(request.POST)
+			if code_form.is_valid():
+				material_code = code_form.cleaned_data['material_code']
+				try:
+					material = Material.objects.get(code=material_code, material_type_id=2)
+					stock = Stock.objects.get(material=material)
+					remaining_to_pack = stock.amount
+					material_info = {
+						'name': material.name,
+						'available_amount': stock.amount,
+					}
+				except Material.DoesNotExist:
+					messages.error(request, 'Материал не найден или не подходит.')
+				except Stock.DoesNotExist:
+					messages.error(request, 'Материал отсутствует на складе.')
 
-                return render(request, 'depo/sale_create.html', {
-                    'code_form': code_form,
-                    'amount_form': amount_form,
-                    'remaining_to_pack': remaining_to_pack,
-                    'material_info': material_info
-                })
-        elif 'submit_sale' in request.POST:
-            amount_form = SaleForm(request.POST)
-            if amount_form.is_valid():
-                quantity = amount_form.cleaned_data['quantity']
-                material_code = request.POST.get('material_code')
+				return render(request, 'depo/sale_create.html', {
+					'code_form': code_form,
+					'amount_form': amount_form,
+					'remaining_to_pack': remaining_to_pack,
+					'material_info': material_info
+				})
+		elif 'submit_sale' in request.POST:
+			amount_form = SaleForm(request.POST)
+			if amount_form.is_valid():
+				quantity = amount_form.cleaned_data['quantity']
+				material_code = request.POST.get('material_code')
 
-                try:
-                    material = Material.objects.get(code=material_code, material_type_id=2)
-                    stock = Stock.objects.get(material=material)
+				try:
+					material = Material.objects.get(code=material_code, material_type_id=2)
+					stock = Stock.objects.get(material=material)
 
-                    if stock.amount < quantity:
-                        messages.error(request, 'Недостаточно материалов на складе.')
-                        return redirect('depo:sale-create')
+					if stock.amount < quantity:
+						messages.error(request, 'Недостаточно материалов на складе.')
+						return redirect('depo:sale-create')
 
-                    # Create outgoing record
-                    with transaction.atomic():
-                        outgoing = Outgoing.objects.create(
-                            data=timezone.now(),
-                            outgoing_type=Outgoing.OutgoingType.SALE,
-                            warehouse=stock.warehouse,
-                            created_by=request.user
-                        )
+					# Create outgoing record
+					with transaction.atomic():
+						outgoing = Outgoing.objects.create(
+							data=timezone.now(),
+							outgoing_type=Outgoing.OutgoingType.SALE,
+							warehouse=stock.warehouse,
+							created_by=request.user
+						)
 
-                        OutgoingMaterial.objects.create(
-                            outgoing=outgoing,
-                            material=material,
-                            amount=quantity
-                        )
+						OutgoingMaterial.objects.create(
+							outgoing=outgoing,
+							material=material,
+							amount=quantity
+						)
 
-                        # Update stock
-                        stock.amount -= quantity
-                        stock.save()
+						# Update stock
+						stock.amount -= quantity
+						stock.save()
 
-                        messages.success(request, 'Продажа успешно оформлена.')
-                        return redirect('depo:sale-create')  # Redirect to a success page or another view
-                except (Material.DoesNotExist, Stock.DoesNotExist):
-                    messages.error(request, 'Ошибка при обработке продажи.')
-            else:
-                messages.error(request, 'Пожалуйста, исправьте ошибки в форме.')
+						messages.success(request, 'Продажа успешно оформлена.')
+						return redirect('depo:outgoing-list')  # Redirect to a success page or another view
+				except (Material.DoesNotExist, Stock.DoesNotExist):
+					messages.error(request, 'Ошибка при обработке продажи.')
+			else:
+				messages.error(request, 'Пожалуйста, исправьте ошибки в форме.')
 
-    return render(request, 'depo/sale_create.html', {
-        'code_form': code_form,
-        'amount_form': amount_form,
-        'remaining_to_pack': remaining_to_pack,
-        'material_info': material_info
-    })
+	return render(request, 'depo/sale_create.html', {
+		'code_form': code_form,
+		'amount_form': amount_form,
+		'remaining_to_pack': remaining_to_pack,
+		'material_info': material_info
+	})
+
+
+class IncomingPDFView(View):
+	def get(self, request, *args, **kwargs):
+		incoming = get_object_or_404(Incoming, pk=kwargs['pk'])
+		incoming_materials = incoming.incomingmaterial_set.all()
+
+		# Подготовка контекста для шаблона
+		context = {
+			'incoming': incoming,
+			'incoming_materials': incoming_materials,
+		}
+
+		# Рендеринг HTML-шаблона в строку
+		html_string = render_to_string('pdf/incoming_detail_pdf.html', context)
+
+		# Генерация PDF из HTML-строки
+		html = HTML(string=html_string)
+		pdf_file = html.write_pdf()
+
+		# Возвращение PDF-файла как ответа
+		response = HttpResponse(pdf_file, content_type='application/pdf')
+		response['Content-Disposition'] = f'inline; filename="incoming_{incoming.id}.pdf"'
+
+		return response
+
+
+class OutgoingPDFView(View):
+	def get(self, request, *args, **kwargs):
+		outgoing = get_object_or_404(Outgoing, pk=kwargs['pk'])
+		outgoing_materials = outgoing.outgoing_materials.all()
+
+		# Подготовка контекста для шаблона
+		context = {
+			'outgoing': outgoing,
+			'outgoing_materials': outgoing_materials,
+		}
+
+		# Рендеринг HTML-шаблона в строку
+		html_string = render_to_string('pdf/outgoing_detail_pdf.html', context)
+
+		# Генерация PDF из HTML-строки
+		html = HTML(string=html_string)
+		pdf_file = html.write_pdf()
+
+		# Возвращение PDF-файла как ответа
+		response = HttpResponse(pdf_file, content_type='application/pdf')
+		response['Content-Disposition'] = f'inline; filename="incoming_{outgoing.id}.pdf"'
+
+		return response
