@@ -41,7 +41,7 @@ class Material(BaseModel):
 	special_group = models.ForeignKey('MaterialSpecialGroup', on_delete=models.CASCADE, null=True, blank=True,
 									  verbose_name="Специальная группа")
 	brand = models.ForeignKey('Brand', on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Бренд")
-	material_type = models.ForeignKey(MaterialType, on_delete=models.CASCADE, default=5, max_length=100,
+	material_type = models.ForeignKey(MaterialType, on_delete=models.CASCADE, default=1, max_length=100,
 									  null=True, blank=True,
 									  verbose_name="Тип материала")
 	material_thickness = models.FloatField(verbose_name="Плотность(Г/м2)", null=True, blank=True)
