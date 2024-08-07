@@ -1,7 +1,9 @@
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import render, redirect, get_object_or_404
+from django.urls import reverse_lazy
 from django.views import View
+from django.views.generic import UpdateView
 
 from apps.info.forms import MaterialTypeForm, WarehouseForm, MaterialForm, FirmForm, SpecificationForm, BoxSizesForm, \
 	BoxTypesForm, MaterialSpecialGroupForm, BrandForm, MaterialGroupForm
@@ -97,3 +99,17 @@ class MaterialEditView(View, LoginRequiredMixin):
 			messages.error(request, 'Please correct the errors below.')
 		context = {'form': form, 'material': material}
 		return render(request, 'info/material_edit.html', context)
+
+
+class FirmUpdateView(UpdateView):
+	model = Firm
+	form_class = FirmForm
+	template_name = 'info/firm_update.html'
+	success_url = reverse_lazy('info:firm-list')
+
+
+class MaterialGroupUpdateView(UpdateView):
+	model = MaterialGroup
+	form_class = MaterialGroupForm
+	template_name = 'info/material_group_update.html'
+	success_url = reverse_lazy('info:material-group-list')

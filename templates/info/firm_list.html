@@ -52,7 +52,7 @@
                                     <td>{{ firm.phone_number }}</td>
                                     <td>{{ firm.license_number }}</td>
                                     <td>
-                                        <a href="" type="button" class="btn btn-primary btn-sm"><i
+                                        <a href="{% url 'info:firm-update' firm.pk %}" type="button" class="btn btn-primary btn-sm"><i
                                                 class="bi bi-pencil-square"></i></a>
                                     </td>
                                 </tr>

@@ -7,6 +7,7 @@ from .views import (
 	SpecificationListCreate,
 	BoxSizeListCreate,
 	BoxTypeListCreate, MaterialEditView, MaterialGroupListCreate, MaterialSpecialGroupListCreate, BrandListCreate,
+	FirmUpdateView, MaterialGroupUpdateView,
 )
 
 app_name = 'info'
@@ -24,4 +25,7 @@ urlpatterns = [
 	path('brands/', BrandListCreate.as_view(), name='brand-list'),
 
 	path('material/int:<pk>/', MaterialEditView.as_view(), name='material-edit'),
+	path('firm/<int:pk>/edit/', FirmUpdateView.as_view(), name='firm-update'),
+	path('material-group/<int:pk>/edit/', MaterialGroupUpdateView.as_view(), name='material-group-update'),
+
 ]

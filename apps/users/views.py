@@ -14,18 +14,16 @@ def user_login(request):
 		form = LoginForm(request.POST)
 		if form.is_valid():
 			data = form.cleaned_data
-			user = authenticate(request,
-								username=data['username'],
-								password=data['password'])
+			user = authenticate(request, username=data['username'], password=data['password'])
 
 			if user is not None:
 				if user.is_active:
 					login(request, user)
 					return redirect(reverse('base_html'))
 				else:
-					messages.error(request, 'Ваш пользователь не активен')
+					return render(request, 'users/login.html', {'form': form, 'error': 'Ваш пользователь не активен'})
 			else:
-				messages.error(request, 'Неверный логин или пароль')
+				return render(request, 'users/login.html', {'form': form, 'error': 'Неверный логин или пароль'})
 
 	else:
 		form = LoginForm()
@@ -33,12 +31,7 @@ def user_login(request):
 	return render(request, 'users/login.html', {'form': form})
 
 
-logger = logging.getLogger(__name__)
-
-
 class LogoutView(LoginRequiredMixin, View):
 	def get(self, request):
 		logout(request)
-		logger.info("User logged out successfully.")
-		messages.info(request, "You have successfully logged out.")
 		return redirect("login")

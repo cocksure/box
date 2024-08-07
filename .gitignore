@@ -4,7 +4,7 @@ __pycache__/
 
 *.log
 
-#myenv/
+myenv/
 .env
 #static
 #media
