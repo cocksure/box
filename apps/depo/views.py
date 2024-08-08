@@ -11,7 +11,7 @@ from apps.depo.forms import IncomingForm, IncomingMaterialFormSet, OutgoingMater
 from apps.depo.models.incoming import Incoming, IncomingMaterial
 from apps.depo.models.outgoing import OutgoingMaterial, Outgoing
 from apps.depo.models.stock import Stock
-from apps.info.models import Material, Warehouse, MaterialType
+from apps.info.models import Material, Warehouse, MaterialType, Firm
 
 from apps.shared.views import BaseListView
 from django.contrib import messages
@@ -40,6 +40,8 @@ class StockListView(BaseListView):
 		queryset = Stock.objects.all()
 		warehouse_id = request.GET.get('warehouse_id')
 		material_type_id = request.GET.get('material_type')
+		format_id = request.GET.get('format')
+		customer_id = request.GET.get('customer_id')
 
 		if warehouse_id:
 			queryset = queryset.filter(warehouse_id=warehouse_id)
@@ -53,8 +55,22 @@ class StockListView(BaseListView):
 		else:
 			selected_material_type_id = ""
 
+		if format_id:
+			queryset = queryset.filter(material__format=format_id)
+			selected_format_id = format_id
+		else:
+			selected_format_id = ""
+
+		if customer_id:
+			queryset = queryset.filter(material__customer_id=customer_id)
+			selected_customer_id = customer_id
+		else:
+			selected_customer_id = ""
+
 		warehouses = Warehouse.objects.all()
 		material_types = MaterialType.objects.all()
+		formats = dict(Material.FORMAT_CHOICES)
+		customers = Firm.objects.all()
 
 		page_obj = self.apply_pagination_and_search(queryset, request)
 
@@ -62,8 +78,13 @@ class StockListView(BaseListView):
 			'items': page_obj,
 			'warehouses': warehouses,
 			'material_types': material_types,
+			'formats': formats,
+			'customers': customers,
 			'selected_warehouse_id': selected_warehouse_id,
 			'selected_material_type_id': selected_material_type_id,
+			'selected_format_id': selected_format_id,
+			'selected_customer_id': selected_customer_id,
+
 		}
 		return render(request, self.template_name, context)
 
@@ -233,7 +254,7 @@ class IncomingCreate(CreateView):
 
 				Stock.objects.bulk_update(stocks_to_update, ['amount'])
 
-				messages.success(self.request, "Приход Успешно создан!")
+		# messages.success(self.request, "Приход Успешно создан!")
 
 		except Exception as e:
 			messages.error(self.request, f"Error: {e}")

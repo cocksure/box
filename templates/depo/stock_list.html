@@ -11,50 +11,67 @@
                         <h5 class="mb-3">Остаток</h5>
                     </div>
                     <div class="col-md-6 text-end mb-2">
-                        <a href="{% url 'depo:incoming-create' %}" type="button" class="btn btn-primary">Создать</a>
+                        {% include 'base/search_form.html' %}
                     </div>
                     <hr>
-                    <!-- Search -->
+                    <!-- Search and Filters -->
                     <div class="row mb-3">
-                        <div class="col-md-6">
-                            {% include 'base/search_form.html' %}
+                        <div class="col-md-4">
                         </div>
-
-                        <div class="col-md-6 text-end">
-                            <form method="get" action="{% url 'depo:stock-list' %}" id="warehouseForm">
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <select class="form-select" id="warehouse" name="warehouse_id">
-                                                <option value="">Все склады</option>
-                                                {% for warehouse in warehouses %}
-                                                    <option value="{{ warehouse.id }}"
-                                                            {% if warehouse.id == selected_warehouse_id %}
-                                                            selected {% endif %}>{{ warehouse.name }}</option>
-                                                {% endfor %}
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <select class="form-select" id="material_type" name="material_type">
-                                                <option value="">Все типы материалов</option>
-                                                {% for material_type in material_types %}
-                                                    <option value="{{ material_type.id }}"
-                                                            {% if material_type.id == selected_material_type_id %}
-                                                            selected {% endif %}>{{ material_type.name }}</option>
-                                                {% endfor %}
-                                            </select>
-                                        </div>
+                        <form method="get" action="{% url 'depo:stock-list' %}" id="filterForm">
+                            <div class="row g-2">
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <select class="form-select" id="warehouse" name="warehouse_id">
+                                            <option value="">Cклады</option>
+                                            {% for warehouse in warehouses %}
+                                                <option value="{{ warehouse.id }}"
+                                                        {% if warehouse.id == selected_warehouse_id %}
+                                                        selected {% endif %}>{{ warehouse.name }}</option>
+                                            {% endfor %}
+                                        </select>
                                     </div>
                                 </div>
-                            </form>
-                        </div>
-
-
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <select class="form-select" id="material_type" name="material_type">
+                                            <option value="">Типы материалов</option>
+                                            {% for material_type in material_types %}
+                                                <option value="{{ material_type.id }}"
+                                                        {% if material_type.id == selected_material_type_id %}
+                                                        selected {% endif %}>{{ material_type.name }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="mb-3">
+                                        <select class="form-select" id="format" name="format">
+                                            <option value="">Форматы</option>
+                                            {% for format_key, format_value in formats.items %}
+                                                <option value="{{ format_key }}"
+                                                        {% if format_key == selected_format_id %}
+                                                        selected {% endif %}>{{ format_value }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <select class="form-select" id="customer" name="customer_id">
+                                            <option value="">Заказчики</option>
+                                            {% for customer in customers %}
+                                                <option value="{{ customer.id }}"
+                                                        {% if customer.id == selected_customer_id %}
+                                                        selected {% endif %}>{{ customer.name }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
                     </div>
                     <!-- Filter form end -->
-
 
                     <!-- Table start -->
                     <div class="table-responsive">
@@ -64,9 +81,9 @@
                                 <th scope="col">Cклад</th>
                                 <th scope="col">Материал</th>
                                 <th scope="col">Код материала</th>
-                                <th scope="col">Группа материала</th>
+                                <th scope="col">Спец группа</th>
+                                <th scope="col">Заказчик</th>
                                 <th scope="col">Количество</th>
-                                <th scope="col">Ед.изм</th>
                             </tr>
                             </thead>
                             <tbody>
@@ -75,16 +92,19 @@
                                     <td>{{ stock.warehouse }}</td>
                                     <td>{{ stock.material }}</td>
                                     <td>{{ stock.material.code }}</td>
-                                    <td>{{ stock.material.material_group }}</td>
-                                    <td>{{ stock.amount }}</td>
-                                    <td>{{ stock.material.unit_of_measurement }}</td>
+                                    <td>{{ stock.material.special_group }}</td>
+                                    {% if stock.material.customer %}
+                                        <td>{{ stock.material.customer }}</td>
+                                    {% else %}
+                                        <td> -</td>
+                                    {% endif %}
+                                    <td>{{ stock.amount }} | {{ stock.material.get_unit_display }}</td>
                                 </tr>
                             {% endfor %}
                             </tbody>
                         </table>
                     </div>
                     <!-- Table end -->
-
 
                     <!-- Pagination start -->
                     {% include 'base/pagination.html' with items=items %}
@@ -94,6 +114,8 @@
             </div>
         </div>
     </div>
+
+
     <!-- Table End -->
 
     {% block dashboard %}
@@ -101,10 +123,21 @@
 
     <script>
         document.getElementById('warehouse').addEventListener('change', function () {
-            document.getElementById('warehouseForm').submit();
+            document.getElementById('filterForm').submit();
         });
+
         document.getElementById('material_type').addEventListener('change', function () {
-            document.getElementById('warehouseForm').submit();
+            document.getElementById('filterForm').submit();
+        });
+
+        document.getElementById('format').addEventListener('change', function () {
+            document.getElementById('filterForm').submit();
+        });
+
+        document.getElementById('customer').addEventListener('change', function () {
+            document.getElementById('filterForm').submit();
         });
     </script>
+
+
 {% endblock %}

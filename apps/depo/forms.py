@@ -42,7 +42,7 @@ class IncomingMaterialForm(forms.ModelForm):
 
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
-		self.fields['material'].queryset = Material.objects.exclude(material_type=2)
+		self.fields['material'].queryset = Material.objects.exclude(special_group__in=[2, 3])
 
 
 class OutgoingForm(forms.ModelForm):

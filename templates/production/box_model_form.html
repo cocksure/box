@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+    <!-- Page Start -->
+    <div class="container-fluid pt-4 px-4">
+        <div class="row g-4">
+            <div class="col-sm-12">
+                <div class="bg-light rounded p-4">
+                    <h6 class="">Создание модели коробки</h6>
+                    <hr>
+
+                    <!-- Form Start -->
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="row">
+                            <div class="col-md-7 col-lg-7">
+                                <div class="">
+                                    {{ form.name.label_tag }} {{ form.name }}
+                                    {{ form.box_size.label_tag }} {{ form.box_size }}
+                                    {{ form.box_type.label_tag }} {{ form.box_type }}
+                                    {{ form.color.label_tag }} {{ form.color }}
+                                    {{ form.material.label_tag }} {{ form.material }}
+                                    {{ form.layers.label_tag }} {{ form.layers }}
+
+                                    {{ form.closure_type.label_tag }} {{ form.closure_type }}
+                                </div>
+                            </div>
+                            <div class="col-md-5 col-lg-5">
+                                <div id="image-preview">
+                                    {% if form.instance.photo %}
+                                        <img src="{{ form.instance.photo.url }}" alt="Изображение"
+                                             class="img-thumbnail h-100"
+                                             style="max-width: 100%; max-height: 250px;">
+                                    {% endif %}
+                                </div>
+                                <div class="">
+                                    {{ form.photo }}
+                                    {{ form.additional_materials.label_tag }} {{ form.additional_materials }}
+                                    {{ form.additional_properties.label_tag }} {{ form.additional_properties }}
+                                    {{ form.comment.label_tag }} {{ form.comment }}
+                                </div>
+                            </div>
+                            <div class="col-12 text-center p-2">
+                                <button type="submit" class="btn btn-primary w-100">Создать</button>
+                            </div>
+                        </div>
+                    </form>
+                    <!-- Form End -->
+
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Page End -->
+
+{% endblock %}

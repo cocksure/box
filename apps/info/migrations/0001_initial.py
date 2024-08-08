@@ -230,7 +230,7 @@ class Migration(migrations.Migration):
                 (
                     "photo",
                     models.ImageField(
-                        default="box_photos/no-image.png",
+                        default="box_photos/box_foto.png",
                         upload_to="box_photos",
                         validators=[
                             django.core.validators.FileExtensionValidator(

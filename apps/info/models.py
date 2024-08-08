@@ -10,6 +10,35 @@ from apps.users.models import CustomUser
 from django.core.validators import MinValueValidator
 
 
+class Firm(BaseModel):
+	SUPPLIER = 'supplier'
+	CUSTOMER = 'customer'
+	BOTH = 'both'
+
+	FIRM_TYPES = [
+		(SUPPLIER, 'Поставщик'),
+		(CUSTOMER, 'Заказчик'),
+		(BOTH, 'Поставщик и Заказчик'),
+	]
+
+	code = models.CharField(max_length=10, unique=True, null=True, blank=True, verbose_name="Код")
+	name = models.CharField(max_length=150, verbose_name="Название")
+	type_firm = models.CharField(max_length=20, choices=FIRM_TYPES, verbose_name="Тип фирмы")
+	is_active = models.BooleanField(default=True, null=True, blank=True, verbose_name="Активна")
+	legal_address = models.CharField(max_length=150, null=True, blank=True, verbose_name="Юридический адрес")
+	actual_address = models.CharField(max_length=150, null=True, blank=True, verbose_name="Фактический адрес")
+	phone_number = models.CharField(max_length=13, null=True, blank=True, verbose_name="Номер телефона")
+	license_number = models.CharField(max_length=100, null=True, blank=True, verbose_name="Номер лицензии")
+	mfo = models.CharField(max_length=5, null=True, blank=True, verbose_name="МФО")
+
+	def __str__(self):
+		return self.name
+
+	class Meta:
+		verbose_name = "Фирма"
+		verbose_name_plural = "Фирмы"
+
+
 class MaterialType(BaseModel):
 	name = models.CharField(max_length=100, verbose_name="Название")
 
@@ -22,6 +51,8 @@ class MaterialType(BaseModel):
 
 
 class Material(BaseModel):
+	FORMAT_CHOICES = [(i, str(i)) for i in range(90, 176, 5)]
+
 	UNIT_CHOICES = (
 		('sht', 'шт'),
 		('sm', 'см'),
@@ -37,7 +68,8 @@ class Material(BaseModel):
 
 	code = models.CharField(max_length=100, unique=True, null=True, blank=True, verbose_name="Код")
 	name = models.CharField(max_length=100, unique=True, verbose_name="Название")
-	material_group = models.ForeignKey('MaterialGroup', on_delete=models.CASCADE, verbose_name="Группа материала")
+	material_group = models.ForeignKey('MaterialGroup', on_delete=models.CASCADE, null=True,
+									   verbose_name="Группа материала")
 	special_group = models.ForeignKey('MaterialSpecialGroup', on_delete=models.CASCADE, null=True, blank=True,
 									  verbose_name="Специальная группа")
 	brand = models.ForeignKey('Brand', on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Бренд")
@@ -57,12 +89,15 @@ class Material(BaseModel):
 		verbose_name="Норма для 1 м2",
 		validators=[MinValueValidator(0)]
 	)
+	format = models.IntegerField(choices=FORMAT_CHOICES, verbose_name="Формат", null=True, blank=True, default=None)
+
 	photo = models.ImageField(
 		upload_to='box_photos',
-		default='box_photos/no-image.png',
+		default='box_photos/box_foto.png',
 		validators=[FileExtensionValidator(allowed_extensions=['jpg', 'jpeg', 'png', 'heic'])],
 		verbose_name="Изображение"
 	)
+	customer = models.ForeignKey(Firm, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Заказчик")
 
 	def get_unit_display(self):
 		return dict(self.UNIT_CHOICES).get(self.unit_of_measurement, self.unit_of_measurement)
@@ -124,35 +159,6 @@ class Warehouse(BaseModel):
 		verbose_name_plural = "Склады"
 
 
-class Firm(BaseModel):
-	SUPPLIER = 'supplier'
-	CUSTOMER = 'customer'
-	BOTH = 'both'
-
-	FIRM_TYPES = [
-		(SUPPLIER, 'Поставщик'),
-		(CUSTOMER, 'Заказчик'),
-		(BOTH, 'Поставщик и Заказчик'),
-	]
-
-	code = models.CharField(max_length=10, unique=True, null=True, blank=True, verbose_name="Код")
-	name = models.CharField(max_length=150, verbose_name="Название")
-	type_firm = models.CharField(max_length=20, choices=FIRM_TYPES, verbose_name="Тип фирмы")
-	is_active = models.BooleanField(default=True, null=True, blank=True, verbose_name="Активна")
-	legal_address = models.CharField(max_length=150, null=True, blank=True, verbose_name="Юридический адрес")
-	actual_address = models.CharField(max_length=150, null=True, blank=True, verbose_name="Фактический адрес")
-	phone_number = models.CharField(max_length=13, null=True, blank=True, verbose_name="Номер телефона")
-	license_number = models.CharField(max_length=100, null=True, blank=True, verbose_name="Номер лицензии")
-	mfo = models.CharField(max_length=5, null=True, blank=True, verbose_name="МФО")
-
-	def __str__(self):
-		return self.name
-
-	class Meta:
-		verbose_name = "Фирма"
-		verbose_name_plural = "Фирмы"
-
-
 class Specification(BaseModel):
 	year = models.CharField(max_length=4, verbose_name="Год")
 	name = models.CharField(max_length=100, verbose_name="Название")
@@ -167,7 +173,7 @@ class Specification(BaseModel):
 
 
 class BoxSize(BaseModel):
-	name = models.CharField(max_length=100, null=True, blank=True, verbose_name="Название")
+	name = models.CharField(max_length=100, unique=True, null=True, blank=True, verbose_name="Название")
 
 	width = models.PositiveIntegerField(verbose_name="Ширина")
 	height = models.PositiveIntegerField(verbose_name="Высота")

@@ -15,72 +15,10 @@
                             {% include 'base/search_form.html' %}
                         </div>
                         <div class="col-md-6 text-end">
-                            <button type="button" class="btn btn-primary" id="openCreateModalBtn"
-                                    data-bs-toggle="modal" data-bs-target="#myModalCreate"
-                                    data-action-url="{% url 'production:box-model-list' %}">Создать
-                            </button>
+                            <a href="{% url 'production:box-model-create' %}" class="btn btn-primary">Создать
+                            </a>
                         </div>
                     </div>
-
-                    <!-- Modal -->
-                    <div class="modal fade" id="myModalCreate" tabindex="-1" role="dialog"
-                         aria-labelledby="myModalLabelCreate">
-                        <div class="modal-dialog modal-lg" role="document">
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <h4 class="modal-title" id="myModalLabelCreate">Создание модели коробки</h4>
-                                    <button type="button" class="btn-close" data-bs-dismiss="modal"
-                                            aria-label="Close"></button>
-                                </div>
-                                <div class="modal-body">
-                                    <form id="myModalCreateForm" method="post"
-                                          action="{% url 'production:box-model-list' %}" enctype="multipart/form-data">
-                                        {% csrf_token %}
-                                        <div class="row">
-                                            <div class="col-md-7 col-lg-7">
-                                                <div class="mb-3">
-                                                    {{ form.name }}
-                                                    {{ form.material.label_tag }}
-                                                    {{ form.material }}
-                                                    {{ form.box_size.label_tag }}
-                                                    {{ form.box_size }}
-                                                    {{ form.box_type.label_tag }}
-                                                    {{ form.box_type }}
-                                                    {{ form.color }}
-                                                    {{ form.closure_type.label_tag }}
-                                                    {{ form.closure_type }}
-                                                    {{ form.format.label_tag }}
-                                                    {{ form.format }}
-                                                    {{ form.layers.label_tag }}
-                                                    {{ form.layers }}
-                                                    {{ form.additional_properties.label_tag }}
-                                                    {{ form.additional_properties }}
-                                                </div>
-                                            </div>
-                                            <div class="col-md-5 col-lg-5">
-                                                <div id="image-preview">
-                                                    <img src="{{ form.instance.photo.url }}" alt="Изображение"
-                                                         class="img-thumbnail h-100 mt-3"
-                                                         style="max-width: 100%; max-height: 400px;">
-                                                </div>
-                                                <div class="mt-3">
-                                                    {{ form.photo }}
-                                                    {{ form.additional_materials.label_tag }}
-                                                    {{ form.additional_materials }}
-                                                    {{ form.comment }}
-                                                </div>
-                                            </div>
-                                            <div class="col-12 text-center p-2">
-                                                <button type="submit" class="btn btn-primary w-100">Создать</button>
-                                            </div>
-                                        </div>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-
                 </div>
 
 
@@ -88,12 +26,13 @@
                     <table class="table table-hover table-light table-bordered text-center">
                         <thead>
                         <tr>
-                            <th scope="col">Название</th>
-                            <th scope="col">Материал модели</th>
+                            <th scope="col">Название модели</th>
                             <th scope="col">Размер</th>
+                            <th scope="col">Площадь коробки</th>
+
                             <th scope="col">Тип модели</th>
                             <th scope="col">Менеджер</th>
-                            <th scope="col">Фото</th>
+                            <th scope="col">Грамм на коробку</th>
                             <th scope="col">Действия</th>
                         </tr>
                         </thead>
@@ -101,69 +40,35 @@
                         {% for box_model in items %}
                             <tr>
                                 <td>{{ box_model.name }}</td>
-                                <td>{{ box_model.material }}</td>
                                 <td>{{ box_model.box_size }}</td>
+                                <td>{{ box_model.calculate_total_material_area }}</td>
                                 <td>{{ box_model.box_type }}</td>
                                 <td>{{ box_model.created_by }}</td>
-                                <td><img src="{{ box_model.photo.url }}" alt="Box Photo"
-                                         style="max-width: 100px;" class="img-fluid"></td>
+                                <td>{{ box_model.grams_per_box }}</td>
+
                                 <td>
                                     <a href="{% url 'production:box-model-edit' pk=box_model.pk %}" type="button"
                                        class="btn btn-primary btn-sm">
                                         <i class="bi bi-pencil-square"></i>
                                     </a>
-
                                 </td>
                             </tr>
                         {% endfor %}
+
 
                         </tbody>
                     </table>
                 </div>
 
-                <!-- Pagination start -->
-                {% include 'base/pagination.html' with items=items %}
-                <!-- Pagination end -->
 
             </div>
         </div>
+        <!-- Pagination start -->
+        {% include 'base/pagination.html' with items=items %}
+        <!-- Pagination end -->
     </div>
     <!-- Table End -->
 
     {% block dashboard %}
     {% endblock %}
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const input = document.querySelector('input[type="file"]');
-            const preview = document.getElementById('image-preview');
-
-            input.addEventListener('change', function () {
-                const file = this.files[0];
-                if (file) {
-                    const reader = new FileReader();
-                    reader.onload = function (e) {
-                        const img = document.createElement('img');
-                        img.src = e.target.result;
-                        img.classList.add('img-thumbnail');
-                        img.style.maxWidth = '100%';
-                        img.style.maxHeight = '400px';
-                        preview.innerHTML = '';
-                        preview.appendChild(img);
-                    }
-                    reader.readAsDataURL(file);
-                }
-            });
-
-            $(document).ready(function () {
-                $('#myModal').on('show.bs.modal', function () {
-                    $('#myModalCreateForm')[0].reset();
-                    $('#name').val('Значение по умолчанию');
-                    preview.innerHTML = '';
-                });
-                $('#openModalBtn').click(function () {
-                    $('#myModal').modal('show');
-                });
-            });
-        });
-    </script>
 {% endblock %}

@@ -10,7 +10,7 @@ class BoxModelForm(forms.ModelForm):
 		model = BoxModel
 		fields = [
 			'name', 'material', 'additional_materials', 'box_size', 'box_type', 'closure_type',
-			'additional_properties', 'max_load', 'color', 'grams_per_box', 'format', 'comment', 'photo', 'layers'
+			'additional_properties', 'max_load', 'color', 'grams_per_box', 'comment', 'photo', 'layers'
 		]
 		labels = {
 			'name': '',
@@ -21,31 +21,30 @@ class BoxModelForm(forms.ModelForm):
 			'comment': 'Комментарий',
 		}
 		widgets = {
-			'name': forms.TextInput(attrs={'class': 'form-control mt-3 mb-2', 'placeholder': 'Введите название'}),
-			'material': forms.Select(attrs={'class': 'form-select mb-3', 'placeholder': 'Выберите материал'}),
+			'name': forms.TextInput(attrs={'class': 'form-control  mb-3', 'placeholder': 'Введите название'}),
+			'material': forms.SelectMultiple(attrs={'class': 'form-control mb-2 custom-select'}),
 			'box_size': forms.Select(attrs={'class': 'form-select mb-2', 'placeholder': 'Выберите размер'}),
-			'box_type': forms.Select(attrs={'class': 'form-select mb-3', 'placeholder': 'Выберите тип коробки'}),
-			'color': forms.TextInput(attrs={'class': 'form-control mb-2', 'placeholder': 'Введите цвет'}),
+			'box_type': forms.Select(attrs={'class': 'form-select mb-2', 'placeholder': 'Выберите тип коробки'}),
+			'color': forms.TextInput(attrs={'class': 'form-control mb-3', 'placeholder': 'Введите цвет'}),
 			'closure_type': forms.Select(attrs={'class': 'form-select mb-2'}),
-			'format': forms.Select(attrs={'class': 'form-select mb-2'}),
 			'layers': forms.Select(attrs={'class': 'form-select mb-2'}),
-			'additional_properties': forms.Select(attrs={'class': 'form-control mb-2'}),
-
+			'additional_properties': forms.Select(attrs={'class': 'form-control mt-2'}),
 			'max_load': forms.NumberInput(
 				attrs={'class': 'form-control mb-3', 'placeholder': 'Введите максимальную нагрузку'}),
 			'grams_per_box': forms.NumberInput(
 				attrs={'class': 'form-control mb-3', 'placeholder': 'Грамм на одну коробку'}),
-			'additional_materials': forms.SelectMultiple(attrs={'class': 'form-control mb-3 custom-select'}),
+			'additional_materials': forms.SelectMultiple(attrs={'class': 'form-control custom-select mt-2'}),
 			'comment': forms.Textarea(
-				attrs={'class': 'form-control mb-2', 'rows': 3, 'placeholder': 'Введите комментарий'}),
-			'photo': forms.ClearableFileInput(attrs={'class': 'form-control mb-3', 'id': 'photo', 'name': 'photo'}),
+				attrs={'class': 'form-control mt-2', 'rows': 1, 'placeholder': 'Введите комментарий'}),
+			'photo': forms.ClearableFileInput(attrs={'class': 'form-control ', 'id': 'photo', 'name': 'photo'}),
 		}
 
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
-		self.fields['material'].queryset = Material.objects.exclude(material_type=2)  # Готовый продукт
-		self.fields['additional_materials'].queryset = Material.objects.exclude(
-			material_group=4)  # Группа материала сырьё
+		# Исключение материалов с special_group id 2 и 3 (Дополнительные сырье и Готовые продукты)
+		self.fields['material'].queryset = Material.objects.exclude(special_group__in=[2, 3])
+		# Исключение материалов с special_group id 1
+		self.fields['additional_materials'].queryset = Material.objects.exclude(special_group=1)
 		self.fields['box_size'].queryset = BoxSize.objects.all()
 		self.fields['box_type'].queryset = BoxType.objects.all()
 

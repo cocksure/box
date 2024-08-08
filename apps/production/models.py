@@ -33,9 +33,6 @@ class TypeWork(models.Model):
 		verbose_name_plural = "Виды работ"
 
 
-FORMAT_CHOICES = [(i, str(i)) for i in range(90, 176, 5)]
-
-
 class BoxModel(BaseModel):
 	CLOSURE_TYPE_CHOICES = (
 		(1, "Склейка"),
@@ -61,7 +58,7 @@ class BoxModel(BaseModel):
 	)
 
 	name = models.CharField(max_length=100, unique=True, verbose_name="Название")
-	material = models.ForeignKey(Material, on_delete=models.CASCADE, related_name='box_models', verbose_name="Материал")
+	material = models.ManyToManyField(Material, related_name='box_models', verbose_name="Материалы")
 	additional_materials = models.ManyToManyField(Material, related_name='additional_box_models', blank=True,
 												  verbose_name="Дополнительные материалы")
 
@@ -87,24 +84,44 @@ class BoxModel(BaseModel):
 	comment = models.TextField(blank=True, null=True, verbose_name="Комментарий")
 	grams_per_box = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True,
 										verbose_name="Грамм на одну коробку")
-	format = models.IntegerField(choices=FORMAT_CHOICES, verbose_name="Формат", null=True, blank=True, default=90)
 	layers = models.IntegerField(choices=LAYER_CHOICES, default=3, verbose_name="Количество слоев")
 
 	def calculate_total_material_area(self):
 		if self.box_size:
-			return self.box_size.calculate_material_area(self.layers)
+			area = self.box_size.calculate_material_area(self.layers)
+			return area
 		return None
 
 	def calculate_grams_per_box(self):
 		area = self.calculate_total_material_area()
-		if area and self.material and self.material.norm:
-			self.grams_per_box = Decimal(area) * Decimal(self.material.norm)
+		if area:
+			# Convert area to Decimal if it is not already
+			area = Decimal(area)
+
+			total_norm = Decimal(0)
+			norms = [Decimal(material.norm) for material in self.material.all() if material.norm is not None]
+
+			for norm in norms:
+				total_norm += norm
+
+			if total_norm:
+				self.grams_per_box = area * total_norm
+			else:
+				self.grams_per_box = None
 		else:
 			self.grams_per_box = None
+
+		print(f"Grams per box: {self.grams_per_box}")
 		return self.grams_per_box
 
 	def save(self, *args, **kwargs):
-		self.calculate_grams_per_box()
+		print("Calculating grams per box...")
+
+		if self.pk:  # Check if the instance is already saved
+			# Calculate grams per box only if the instance is already saved
+			self.calculate_grams_per_box()
+			print(f"Grams per box before saving: {self.grams_per_box}")
+
 		super().save(*args, **kwargs)
 
 	class Meta:

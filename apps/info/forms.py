@@ -18,7 +18,7 @@ class MaterialForm(forms.ModelForm):
 	class Meta:
 		model = Material
 		fields = ['name', 'material_group', 'special_group', 'brand', 'material_thickness',
-				  'norm', 'unit_of_measurement', 'photo']
+				  'norm', 'format', 'unit_of_measurement', 'photo']
 		widgets = {
 			'code': forms.TextInput(attrs={'class': 'form-control'}),
 			'name': forms.TextInput(attrs={'class': 'form-control'}),
@@ -28,6 +28,7 @@ class MaterialForm(forms.ModelForm):
 			'material_thickness': forms.NumberInput(attrs={'class': 'form-control'}),
 			'norm': forms.NumberInput(attrs={'class': 'form-control'}),
 			'unit_of_measurement': forms.Select(attrs={'class': 'form-control'}),
+			'format': forms.Select(attrs={'class': 'form-select mb-2'}),
 			'photo': forms.FileInput(attrs={'class': 'form-control'}),
 		}
 

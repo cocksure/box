@@ -8,5 +8,8 @@ from apps.production.models import BoxModel
 @receiver(post_save, sender=BoxModel)
 @receiver(post_delete, sender=BoxModel)
 def clear_production_order_cache(sender, **kwargs):
-    cache_key = 'boxmodel_list_data'
-    cache.delete(cache_key)
+	cache_key = 'boxmodel_list_data'
+	cache.delete(cache_key)
+
+
+

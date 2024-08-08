@@ -8,13 +8,13 @@ from django.template.loader import render_to_string
 from django.urls import reverse_lazy
 from django.utils import timezone
 from django.views import View
-from django.views.generic import CreateView, DetailView
+from django.views.generic import CreateView, DetailView, ListView
 from weasyprint import HTML
 
 from apps.depo.models.incoming import Incoming, IncomingMaterial
 from apps.depo.models.outgoing import Outgoing, OutgoingMaterial
 from apps.depo.models.stock import Stock
-from apps.info.models import Warehouse, Material, MaterialType, BoxSize
+from apps.info.models import Warehouse, Material, MaterialType, BoxSize, MaterialSpecialGroup
 from apps.production.forms import BoxModelForm, BoxOrderForm, BoxOrderDetailFormSet, ProductionOrderForm, \
 	ProcessLogForm, ProcessLogFilterForm, ProductionOrderCodeForm, PackagingAmountForm
 from apps.production.models import BoxModel, BoxOrder, BoxOrderDetail, ProductionOrder, ProcessLog, Process
@@ -26,11 +26,27 @@ from apps.shared.utils import generate_qr_code
 from apps.shared.views import BaseListCreateView, BaseListView
 
 
-class BoxModelListCreate(BaseListCreateView):
+class BoxModelCreateView(CreateView):
+	model = BoxModel
+	form_class = BoxModelForm
+	template_name = "production/box_model_form.html"
+	success_url = reverse_lazy('production:box-model-list')
+
+	def form_valid(self, form):
+		form.instance.created_by = self.request.user
+		form.instance.manager = self.request.user
+		response = super().form_valid(form)
+
+		# Perform calculations after saving
+		self.object.calculate_grams_per_box()
+		self.object.save()
+		return response
+
+
+class BoxModelListView(BaseListView):
 	model = BoxModel
 	form_class = BoxModelForm
 	template_name = "production/box_model_list.html"
-	redirect_url = "production:box-model-list"
 
 
 class BoxModelEditView(LoginRequiredMixin, View):
@@ -189,13 +205,10 @@ class BoxOrderDetailView(DetailView):
 
 			form = self.form_class(request.POST)
 			if form.is_valid():
-				grams_per_box = detail.box_model.grams_per_box
+				grams_per_box = detail.box_model.calculate_grams_per_box()
 				if grams_per_box is None or detail.amount is None:
 					messages.error(request, 'Грамм на одну коробку или количество не определен!')
 					return redirect('production:box-order-detail', pk=box_order.pk)
-
-				# Расчет общего количества материалов на основе "grams_per_box"
-				total_material_amount = detail.amount * grams_per_box
 
 				with transaction.atomic():
 					production_order = form.save(commit=False)
@@ -205,7 +218,7 @@ class BoxOrderDetailView(DetailView):
 					production_order.save()
 
 					# Создаем запись о расходе
-					warehouse_id = 3  # Расход из сурового склада
+					warehouse_id = 1  # Расход из сурового склада
 					try:
 						warehouse = Warehouse.objects.get(pk=warehouse_id)
 					except Warehouse.DoesNotExist:
@@ -219,24 +232,27 @@ class BoxOrderDetailView(DetailView):
 						created_by=request.user
 					)
 
-					OutgoingMaterial.objects.create(
-						outgoing=outgoing,
-						material=detail.box_model.material,
-						amount=total_material_amount,
-						production_order=production_order  # Устанавливаем связь с ProductionOrder
+					for material in detail.box_model.material.all():
+						norm = material.norm or Decimal(0)
+						total_material_area = Decimal(detail.box_model.calculate_total_material_area())
+						total_material_amount = detail.amount * norm * total_material_area
 
-					)
+						OutgoingMaterial.objects.create(
+							outgoing=outgoing,
+							material=material,
+							amount=total_material_amount,
+							production_order=production_order  # Устанавливаем связь с ProductionOrder
+						)
 
-					# Обновляем запасы на складе
-					stock, created = Stock.objects.get_or_create(material=detail.box_model.material,
-																 warehouse=warehouse)
-					if stock.amount < total_material_amount:
-						transaction.set_rollback(True)
-						messages.error(request, 'Недостаточно материалов на складе.')
-						return redirect('production:box-order-detail', pk=box_order.pk)
+						# Обновляем запасы на складе для каждого материала
+						stock, created = Stock.objects.get_or_create(material=material, warehouse=warehouse)
+						if stock.amount < total_material_amount:
+							transaction.set_rollback(True)
+							messages.error(request, f'Недостаточно материалов на складе для {material.name}.')
+							return redirect('production:box-order-detail', pk=box_order.pk)
 
-					stock.amount -= total_material_amount
-					stock.save()
+						stock.amount -= total_material_amount
+						stock.save()
 
 				messages.success(request, 'Производственный заказ успешно создан.')
 				return redirect('production:box-order-detail', pk=box_order.pk)
@@ -423,7 +439,9 @@ def packaging_view(request):
 							production_order.status = ProductionOrder.ProductionOrderStatus.PACKED
 							production_order.save()
 
-							warehouse_id = 4  # Приход на готовый склад
+							warehouse_id = 3  # Склад для готовых прод
+							from_warehouse = get_object_or_404(Warehouse, id=2)  # Цех Производства
+
 							try:
 								warehouse = Warehouse.objects.get(pk=warehouse_id)
 							except Warehouse.DoesNotExist:
@@ -432,24 +450,29 @@ def packaging_view(request):
 							incoming = Incoming.objects.create(
 								data=timezone.now(),
 								warehouse=warehouse,
+								from_warehouse=from_warehouse,
 								created_by=request.user,
 								created_time=timezone.now()
 							)
 
+							# Получаем BoxOrder связанный с ProductionOrder
+							box_order = production_order.box_order_detail.box_order
 							raw_material = production_order.box_order_detail.box_model.material
 							finished_material_name = production_order.box_order_detail.box_model.name
-							finished_material_type = get_object_or_404(MaterialType, name="Готовый продукт")
+							finished_material_type = get_object_or_404(MaterialType, id=2)
+							special_group = get_object_or_404(MaterialSpecialGroup, id=2)
+
+							# Используем brand из BoxOrder
+							finished_material_customer = box_order.customer
 
 							finished_material, created = Material.objects.get_or_create(
 								name=finished_material_name,
 								defaults={
 									'code': production_order.code,
-									'material_group': raw_material.material_group,
-									'special_group': raw_material.special_group,
-									'brand': raw_material.brand,
+									'special_group': special_group,
 									'material_type': finished_material_type,
-									'material_thickness': raw_material.material_thickness,
-									'unit_of_measurement': raw_material.unit_of_measurement
+									'customer': finished_material_customer,
+									'unit_of_measurement': 'sht'
 								}
 							)
 

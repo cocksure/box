@@ -1,12 +1,15 @@
 from django.urls import path
-from .views import BoxModelListCreate, BoxModelEditView, BoxOrderListView, BoxOrderCreate, BoxOrderDetailView, \
+from .views import BoxModelEditView, BoxOrderListView, BoxOrderCreate, BoxOrderDetailView, \
 	ProductionOrderListView, process_log_view, ProcessLogListView, generate_box_order_pdf, \
-	generate_production_order_pdf, packaging_view, calculate_box_production
+	generate_production_order_pdf, packaging_view, calculate_box_production, BoxModelListView, BoxModelCreateView
 
 app_name = 'production'
 
 urlpatterns = [
-	path('boxmodel/', BoxModelListCreate.as_view(), name='box-model-list'),
+	path('boxmodel/create/', BoxModelCreateView.as_view(), name='box-model-create'),
+
+	path('boxmodel/', BoxModelListView.as_view(), name='box-model-list'),
+
 	path('boxmodel/edit/<int:pk>/', BoxModelEditView.as_view(), name='box-model-edit'),
 	path('boxorders/', BoxOrderListView.as_view(), name='box-order-list'),
 	path('productionorders/', ProductionOrderListView.as_view(), name='production-order-list'),

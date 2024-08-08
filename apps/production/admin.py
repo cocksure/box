@@ -39,7 +39,7 @@ class TypeWorkAdmin(admin.ModelAdmin):
 @admin.register(BoxModel)
 class BoxModelAdmin(admin.ModelAdmin):
 	list_display = (
-		'name', 'material', 'get_additional_materials', 'box_size', 'box_type', 'photo', 'closure_type',
+		'name', 'get_additional_materials', 'box_size', 'box_type', 'photo', 'closure_type',
 		'additional_properties',
 		'color', 'grams_per_box', 'comment', 'created_by', 'updated_by', 'created_time'
 	)
